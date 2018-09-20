@@ -1,0 +1,31 @@
+module hello_world;
+canvas {
+    width 1080;
+    height 720;
+    background 250.1, 250.1, 250.1;
+}
+int var1, var2, var3;
+float var4, var5;
+float func(){
+    if (5 < 9){
+    
+    } else {
+        func_call();
+    }
+    if (5 < 9){
+        x[2][3] = input();
+        x[2][3] = 18 * 32 + (88 * 7);
+    }
+    return 0;
+}
+void func(){
+    return 0;
+}
+
+main {
+    circle(4).rotate(45).stretch(5).rotate(5).fill();
+    up();
+    down();
+    forward(89 + func(67, 89));
+    return 0;
+}
