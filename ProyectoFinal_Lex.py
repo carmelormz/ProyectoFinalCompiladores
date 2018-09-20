@@ -13,6 +13,8 @@ tokens = [
     'CTE_STR',
     'BRADER',
     'BRAIZQ',
+    'CORDER',
+    'CORIZQ',
     'PARDER',
     'PARIZQ',
     'PUNTCOM',
@@ -41,10 +43,13 @@ palabrasReservadas = {
     'repeat' : 'REPEAT',
     'module' : 'MODULE',
     'import': 'IMPORT',
+    'height': 'HEIGHT',
+    'width': 'WIDTH',
     'canvas' : 'CANVAS',
     'print' : 'PRINT',
     'input' : 'INPUT',
     'forward' : 'FORWARD',
+    'background': 'BACKGROUND',
     'backward' : 'BACKWARD',
     'left' : 'LEFT',
     'main' : 'MAIN',
@@ -57,10 +62,15 @@ palabrasReservadas = {
     'triange' : 'TRIANGLE',
     'square' : 'SQUARE',
     'ngon' : 'NGON',
+    'arc' : 'ARC',
     'fill' : 'FILL',
     'color' : 'COLOR',
     'rotate' : 'ROTATE',
-    'stretch' : 'STRETCH'
+    'stretch' : 'STRETCH',
+    'size' : 'SIZE',
+    'int' : 'INT',
+    'float' : 'FLOAT',
+    'void' : 'VOID'
 }
 
 
@@ -99,6 +109,8 @@ def t_CTE_STR(t):
 #REGLAS PARA DETECTAR CARACTERES ESPECIALES.
 t_BRADER = r'\}'
 t_BRAIZQ = r'\{'
+t_CORDER = r'\]'
+t_CORIZQ = r'\['
 t_PARDER = r'\)'
 t_PARIZQ = r'\('
 t_PUNTCOM = r'\;'
@@ -138,4 +150,3 @@ def verTokens(entrada):
     while (token is not None):
         print(token)
         token = lexer.token()
-
