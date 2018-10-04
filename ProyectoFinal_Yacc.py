@@ -4,6 +4,7 @@
 import ply.yacc as yacc
 import ProyectoFinal_Lex as scanner
 import sys
+import json
 
 #------------- SINTAXIS DEL LENGUAJE ---------
 
@@ -11,26 +12,54 @@ precedence = (
     ('left','SUMA','RESTA'),
     ('left','MULT','DIV'),
 )
+# dir_func = {nombre, tipo, vars_table}
+# vars_table = {nombre, tipo, tam1, tam2}
+dir_func = {}
+id_programa = ""
+funcion_actual = ""
+tipo_actual = ""
+id_actual = ""
 
 # DEFINICION DE LAS REGLAS DE LA GRAMATICA
 def p_programa(p):
-    '''programa : MODULE ID PUNTCOM ajustes var_func MAIN bloque_func'''
+    '''programa : MODULE ID creaDirFunc PUNTCOM ajustes var_func MAIN bloque_func'''
+
+def p_creaDirFunc(p):
+    '''creaDirFunc : '''
+    global dir_func
+    global id_programa
+    id_programa = p[-1]
+    dir_func['global'] = {'nombre': id_programa, 'tipo':'void', 'tabla_vars': {}}
 
 def p_ajustes(p):
     '''ajustes : CANVAS BRAIZQ WIDTH CTE_I PUNTCOM HEIGHT CTE_I PUNTCOM BACKGROUND CTE_F COMA CTE_F COMA CTE_F PUNTCOM BRADER
                | IMPORT CTE_STR'''
 
 def p_var_func(p):
-    '''var_func : tipo ID var_o_func
-                | VOID ID PARIZQ pars PARDER bloque_func funcs
+    '''var_func : tipo ID actualiza_id var_o_func
+                | VOID tipo_void ID actualiza_id crea_func PARIZQ pars PARDER bloque_func funcs
                 | '''
 
-def p_var_o_func(p):
-    '''var_o_func : lista vars_lista PUNTCOM var_func
-                  | PARIZQ pars PARDER bloque_func funcs'''
+def p_actualiza_id(p):
+    '''actualiza_id : '''
+    global id_actual
+    id_actual = p[-1]
+
+def p_var_o_func_func(p):
+    '''var_o_func : PARIZQ crea_func pars PARDER bloque_func funcs'''
+
+def p_var_o_func_var(p):
+    '''var_o_func : lista crea_var vars_lista PUNTCOM var_func'''
+
+# vars_table = {nombre, tipo, dim, tam1, tam2}
+def p_crea_var(p):
+    '''crea_var : '''
+    global dir_func
 
 def p_bloque_func(p):
     '''bloque_func : BRAIZQ vars_estatutos returns BRADER'''
+    global funcion_actual
+    funcion_actual = 'global'
 
 def p_vars_estatutos(p):
     '''vars_estatutos : vars estatutos
@@ -44,10 +73,10 @@ def p_returns(p):
     '''returns : RETURN expresion PUNTCOM
                | '''
 def p_vars(p):
-    ''' vars : tipo ID lista vars_lista PUNTCOM mas_vars'''
+    ''' vars : tipo ID actualiza_id crea_var lista vars_lista PUNTCOM mas_vars'''
 
 def p_vars_lista(p):
-    '''vars_lista : COMA ID lista vars_lista
+    '''vars_lista : COMA ID actualiza_id crea_var lista vars_lista
                   | '''
 def p_mas_vars(p):
     '''mas_vars : vars
@@ -57,8 +86,20 @@ def p_funcs(p):
              | '''
 
 def p_func(p):
-    '''func : tipo ID PARIZQ pars PARDER bloque_func
-            | VOID ID PARIZQ pars PARDER bloque_func'''
+    '''func : tipo ID actualiza_id crea_func PARIZQ pars PARDER bloque_func
+            | VOID tipo_void ID actualiza_id crea_func PARIZQ pars PARDER bloque_func'''
+
+def p_tipo_void(p):
+    '''tipo_void : '''
+    global tipo_actual
+    tipo_actual = p[-1]
+
+def p_crea_func(p):
+    '''crea_func : '''
+    global dir_func
+    global funcion_actual
+    funcion_actual = id_actual
+    dir_func[funcion_actual] = {'nombre': funcion_actual, 'tipo': tipo_actual, 'tabla_vars': {}}
 
 def p_expresion(p):
     '''expresion : exp mas_exp'''
@@ -135,16 +176,23 @@ def p_ciclo(p):
     '''ciclo : REPEAT PARIZQ expresion PARDER bloque'''
 
 def p_tipo(p):
-    '''tipo : INT
-            | FLOAT '''
+    '''tipo : INT actualiza_tipo
+            | FLOAT actualiza_tipo'''
+
+def p_actualiza_tipo(p):
+    '''actualiza_tipo : '''
+    global tipo_actual
+    tipo_actual = p[-1]
 
 def p_lista(p):
     '''lista : CORIZQ expresion CORDER matriz
              | '''
+    # agrega p[2] como dimension #1 a id_actual
 
 def p_matriz(p):
     '''matriz : CORIZQ expresion CORDER
               | '''
+    # agrega p[2] como dimension #2 a id_actual
 
 def p_var(p):
     '''var : ID lista
@@ -210,6 +258,7 @@ def main():
         data=file.read().replace('\n', '')
         file.close()
         parser.parse(data)
+    print(json.dumps(dir_func, indent=4))
 
 if __name__ == '__main__':
     main()
