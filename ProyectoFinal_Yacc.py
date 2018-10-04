@@ -12,7 +12,7 @@ precedence = (
     ('left','SUMA','RESTA'),
     ('left','MULT','DIV'),
 )
-# dir_func = {nombre, tipo, tabla_vars}
+# dir_func = {nombre, tipo, num_pars, tabla_vars}
 # tabla_vars = {nombre, tipo, tam1, tam2}
 dir_func = {}
 id_programa = ""
@@ -31,7 +31,7 @@ def p_creaDirFunc(p):
     global funcion_actual
     funcion_actual = 'global'
     id_programa = p[-1]
-    dir_func['global'] = {'nombre': id_programa, 'tipo':'void', 'tabla_vars': {}}
+    dir_func['global'] = {'nombre': id_programa, 'tipo':'void', 'num_pars': 0,'tabla_vars': {}}
 
 def p_ajustes(p):
     '''ajustes : CANVAS BRAIZQ WIDTH CTE_I PUNTCOM HEIGHT CTE_I PUNTCOM BACKGROUND CTE_F COMA CTE_F COMA CTE_F PUNTCOM BRADER
@@ -57,6 +57,7 @@ def p_var_o_func_var(p):
 def p_crea_var(p):
     '''crea_var : '''
     global dir_func
+    # TODO verificar var id no exista
     dir_func[funcion_actual]['tabla_vars'][id_actual] = {'nombre': id_actual, 'tipo':tipo_actual, 'tam1': 1, 'tam2': 0}
 
 def p_bloque_func(p):
@@ -106,8 +107,9 @@ def p_crea_func(p):
     '''crea_func : '''
     global dir_func
     global funcion_actual
+    # TODO verificar funcion_actual no exista
     funcion_actual = id_actual
-    dir_func[funcion_actual] = {'nombre': funcion_actual, 'tipo': tipo_actual, 'tabla_vars': {}}
+    dir_func[funcion_actual] = {'nombre': funcion_actual, 'tipo': tipo_actual, 'num_pars': 0, 'tabla_vars': {}}
 
 def p_expresion(p):
     '''expresion : exp mas_exp'''
@@ -215,24 +217,37 @@ def p_var(p):
 
 def p_func_call(p):
     '''func_call : ID PARIZQ args PARDER'''
+    # TODO verificar que el num de args = num de pars
+    # TODO verificar dir_func[funcion_actual] exista
 
 def p_args(p):
     '''args : expresion arg
             | '''
+    # TODO asignacion de expresion a arg
 
 def p_arg(p):
     '''arg : COMA expresion arg
            | '''
+    # TODO asignacion de expresion a arg
 
 def p_bloque(p):
     ''' bloque : BRAIZQ estatutos BRADER '''
 
 def p_pars(p):
-    '''pars : tipo ID par
+    '''pars : tipo ID actualiza_id crea_var lista par
             | '''
+    # TODO verificar var id no exista
+    # aumenta num par
+    if len(p) > 1:
+        dir_func[funcion_actual]['num_pars'] = dir_func[funcion_actual]['num_pars'] + 1
+
 def p_par(p):
-    '''par : COMA tipo ID par
+    '''par : COMA tipo ID actualiza_id crea_var lista par
            | '''
+    # TODO verificar var id no exista
+    # aumenta num par
+    if len(p) > 1:
+        dir_func[funcion_actual]['num_pars'] = dir_func[funcion_actual]['num_pars'] + 1
 
 def p_instruccion(p):
     '''instruccion : FORWARD PARIZQ expresion PARDER PUNTCOM

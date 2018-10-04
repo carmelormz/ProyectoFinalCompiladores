@@ -7,7 +7,7 @@ canvas {
 int var1, var2, var3;
 float var4[3], var5[4][5];
 float func(){
-    float funcvar6, funcvar7;
+    float funcvar6, funcvar7[3];
     if (5 < 9){
     
     } else {
@@ -21,7 +21,7 @@ float func(){
 void func1(){
 }
 
-int func2(){
+int func2(int par1, int par2){
     return 0;
 }
 
