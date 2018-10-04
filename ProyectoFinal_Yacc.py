@@ -12,8 +12,8 @@ precedence = (
     ('left','SUMA','RESTA'),
     ('left','MULT','DIV'),
 )
-# dir_func = {nombre, tipo, vars_table}
-# vars_table = {nombre, tipo, tam1, tam2}
+# dir_func = {nombre, tipo, tabla_vars}
+# tabla_vars = {nombre, tipo, tam1, tam2}
 dir_func = {}
 id_programa = ""
 funcion_actual = ""
@@ -22,12 +22,14 @@ id_actual = ""
 
 # DEFINICION DE LAS REGLAS DE LA GRAMATICA
 def p_programa(p):
-    '''programa : MODULE ID creaDirFunc PUNTCOM ajustes var_func MAIN bloque_func'''
+    '''programa : MODULE ID creaDirFunc PUNTCOM ajustes var_func tipo_main MAIN actualiza_id crea_func bloque_func'''
 
 def p_creaDirFunc(p):
     '''creaDirFunc : '''
     global dir_func
     global id_programa
+    global funcion_actual
+    funcion_actual = 'global'
     id_programa = p[-1]
     dir_func['global'] = {'nombre': id_programa, 'tipo':'void', 'tabla_vars': {}}
 
@@ -49,12 +51,13 @@ def p_var_o_func_func(p):
     '''var_o_func : PARIZQ crea_func pars PARDER bloque_func funcs'''
 
 def p_var_o_func_var(p):
-    '''var_o_func : lista crea_var vars_lista PUNTCOM var_func'''
+    '''var_o_func : crea_var lista vars_lista PUNTCOM var_func'''
 
-# vars_table = {nombre, tipo, dim, tam1, tam2}
+# vars_table = {nombre, tipo, tam1, tam2}
 def p_crea_var(p):
     '''crea_var : '''
     global dir_func
+    dir_func[funcion_actual]['tabla_vars'][id_actual] = {'nombre': id_actual, 'tipo':tipo_actual, 'tam1': 1, 'tam2': 0}
 
 def p_bloque_func(p):
     '''bloque_func : BRAIZQ vars_estatutos returns BRADER'''
@@ -93,6 +96,11 @@ def p_tipo_void(p):
     '''tipo_void : '''
     global tipo_actual
     tipo_actual = p[-1]
+
+def p_tipo_main(p):
+    '''tipo_main : '''
+    global tipo_actual
+    tipo_actual = 'void'
 
 def p_crea_func(p):
     '''crea_func : '''
@@ -188,11 +196,17 @@ def p_lista(p):
     '''lista : CORIZQ expresion CORDER matriz
              | '''
     # agrega p[2] como dimension #1 a id_actual
+    if (len(p) > 2):
+        global dir_func
+        dir_func[funcion_actual]['tabla_vars'][id_actual]['tam1'] = p[2]
 
 def p_matriz(p):
     '''matriz : CORIZQ expresion CORDER
               | '''
     # agrega p[2] como dimension #2 a id_actual
+    if (len(p) > 2):
+        global dir_func
+        dir_func[funcion_actual]['tabla_vars'][id_actual]['tam2'] = p[2]
 
 def p_var(p):
     '''var : ID lista

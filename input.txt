@@ -5,21 +5,20 @@ canvas {
     background 250.1, 250.1, 250.1;
 }
 int var1, var2, var3;
-float var4, var5;
+float var4[3], var5[4][5];
 float func(){
+    float funcvar6, funcvar7;
     if (5 < 9){
     
     } else {
         func_call();
     }
     if (5 < 9){
-        x[2][3] = input();
-        x[2][3] = 18 * 32 + (88 * 7);
+
     }
     return 0;
 }
 void func1(){
-    return 0;
 }
 
 int func2(){
@@ -27,6 +26,7 @@ int func2(){
 }
 
 main {
+    float mainvar8, mainvar9;
     circle(4).rotate(45).stretch(5).rotate(5).fill();
     up();
     down();
