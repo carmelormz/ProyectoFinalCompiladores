@@ -19,6 +19,7 @@ id_programa = ""
 funcion_actual = ""
 tipo_actual = ""
 id_actual = ""
+num_args = 0
 
 # DEFINICION DE LAS REGLAS DE LA GRAMATICA
 def p_programa(p):
@@ -53,12 +54,14 @@ def p_var_o_func_func(p):
 def p_var_o_func_var(p):
     '''var_o_func : crea_var lista vars_lista PUNTCOM var_func'''
 
-# vars_table = {nombre, tipo, tam1, tam2}
 def p_crea_var(p):
     '''crea_var : '''
     global dir_func
-    # TODO verificar var id no exista
-    dir_func[funcion_actual]['tabla_vars'][id_actual] = {'nombre': id_actual, 'tipo':tipo_actual, 'tam1': 1, 'tam2': 0}
+    if dir_func[funcion_actual]['tabla_vars'].get(id_actual) == None:
+        dir_func[funcion_actual]['tabla_vars'][id_actual] = {'nombre': id_actual, 'tipo':tipo_actual, 'tam1': 1, 'tam2': 0}
+    else:
+        print("Variable %s ya declarada" %(id_actual))
+        # TODO generar error
 
 def p_bloque_func(p):
     '''bloque_func : BRAIZQ vars_estatutos returns BRADER'''
@@ -107,9 +110,12 @@ def p_crea_func(p):
     '''crea_func : '''
     global dir_func
     global funcion_actual
-    # TODO verificar funcion_actual no exista
     funcion_actual = id_actual
-    dir_func[funcion_actual] = {'nombre': funcion_actual, 'tipo': tipo_actual, 'num_pars': 0, 'tabla_vars': {}}
+    if dir_func.get(funcion_actual) == None:
+        dir_func[funcion_actual] = {'nombre': funcion_actual, 'tipo': tipo_actual, 'num_pars': 0, 'tabla_vars': {}}
+    else:
+        print("Funcion %s ya declarada" %(funcion_actual))
+        # TODO generar error
 
 def p_expresion(p):
     '''expresion : exp mas_exp'''
@@ -217,18 +223,31 @@ def p_var(p):
 
 def p_func_call(p):
     '''func_call : ID PARIZQ args PARDER'''
-    # TODO verificar que el num de args = num de pars
-    # TODO verificar dir_func[funcion_actual] exista
+    global num_args
+    if dir_func.get(p[1]) == None:
+        print("Funcion %s no declarada." %(p[1]))
+        # TODO llamar error
+    elif num_args != dir_func[p[1]]['num_pars']:
+        print('Funcion %s requiere %d parametros %d dados.' %(p[1], dir_func[p[1]]['num_pars'], num_args))
+        # TODO llamar error
+    #else:
+    #   llamar funcion
+    num_args = 0
 
 def p_args(p):
     '''args : expresion arg
             | '''
-    # TODO asignacion de expresion a arg
+    if len(p) > 1:
+        global num_args
+        num_args += 1
 
 def p_arg(p):
     '''arg : COMA expresion arg
            | '''
-    # TODO asignacion de expresion a arg
+    if len(p) > 1:
+        global num_args
+        num_args += 1
+
 
 def p_bloque(p):
     ''' bloque : BRAIZQ estatutos BRADER '''
@@ -236,16 +255,12 @@ def p_bloque(p):
 def p_pars(p):
     '''pars : tipo ID actualiza_id crea_var lista par
             | '''
-    # TODO verificar var id no exista
-    # aumenta num par
     if len(p) > 1:
         dir_func[funcion_actual]['num_pars'] = dir_func[funcion_actual]['num_pars'] + 1
 
 def p_par(p):
     '''par : COMA tipo ID actualiza_id crea_var lista par
            | '''
-    # TODO verificar var id no exista
-    # aumenta num par
     if len(p) > 1:
         dir_func[funcion_actual]['num_pars'] = dir_func[funcion_actual]['num_pars'] + 1
 
