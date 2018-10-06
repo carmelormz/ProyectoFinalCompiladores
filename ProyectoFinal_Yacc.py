@@ -48,11 +48,9 @@ def p_actualiza_id(p):
     global id_actual
     id_actual = p[-1]
 
-def p_var_o_func_func(p):
-    '''var_o_func : PARIZQ crea_func pars PARDER bloque_func funcs'''
-
-def p_var_o_func_var(p):
-    '''var_o_func : crea_var lista vars_lista PUNTCOM var_func'''
+def p_var_o_func(p):
+    '''var_o_func : PARIZQ crea_func pars PARDER bloque_func funcs
+                  | crea_var lista vars_lista PUNTCOM var_func'''
 
 def p_crea_var(p):
     '''crea_var : '''
@@ -64,7 +62,7 @@ def p_crea_var(p):
         # TODO generar error
 
 def p_bloque_func(p):
-    '''bloque_func : BRAIZQ vars_estatutos returns BRADER'''
+    '''bloque_func : BRAIZQ vars_estatutos RETURN returns BRADER'''
     global funcion_actual
     funcion_actual = 'global'
 
@@ -77,8 +75,9 @@ def p_estatutos(p):
                  | '''
 
 def p_returns(p):
-    '''returns : RETURN expresion PUNTCOM
-               | '''
+    '''returns : expresion PUNTCOM
+               | PUNTCOM'''
+
 def p_vars(p):
     ''' vars : tipo ID actualiza_id crea_var lista vars_lista PUNTCOM mas_vars'''
 
@@ -118,43 +117,52 @@ def p_crea_func(p):
         # TODO generar error
 
 def p_expresion(p):
-    '''expresion : exp mas_exp'''
+    '''expresion : expr or_expr'''
 
-def p_mas_exp(p):
-    '''mas_exp : MENOR exp
-               | MAYOR exp
-               | MENIGUAL exp
-               | MAYIGUAL exp
-               | IGUAL exp
-               | DIF exp
-               | AND exp
-               | OR exp
+def p_or_expr(p):
+    '''or_expr : OR expresion
+               | '''
+
+def p_expr(p):
+    '''expr : exp and_exp'''
+
+def p_and_exp(p):
+    '''and_exp : AND expr
                | '''
 
 def p_exp(p):
-    '''exp : termino suma_resta'''
+    '''exp : e rel_e'''
+
+def p_rel_e(p):
+    '''rel_e : DIF exp
+             | MENOR exp
+             | MAYOR exp
+             | MENIGUAL exp
+             | MAYIGUAL exp
+             | IGUAL exp
+             |'''
+
+def p_e(p):
+    '''e : termino suma_resta'''
 
 def p_suma_resta(p):
-    '''suma_resta : SUMA termino
-                  | RESTA termino
+    '''suma_resta : SUMA e
+                  | RESTA e
                   | '''
+
 def p_termino(p):
     '''termino : factor mult_div'''
 
 def p_mult_div(p):
-    '''mult_div : MULT factor
-                | DIV factor
+    '''mult_div : MULT termino
+                | DIV termino
                 | '''
 
 def p_factor(p):
-    '''factor : PARIZQ expresion PARDER
-              | var_func_call
-              | SUMA var_func_call
-              | RESTA var_func_call'''
-
-def p_var_func_call(p):
-    '''var_func_call : var
-                     | func_call'''
+    '''factor : PARIZQ e PARDER
+              | var
+              | SUMA var
+              | RESTA var'''
 
 def p_estatuto(p):
     '''estatuto : asignacion
@@ -164,8 +172,18 @@ def p_estatuto(p):
                 | instruccion
                 | func_call PUNTCOM'''
 
+def p_func_call(p):
+    '''func_call : ID PARIZQ args PARDER'''
+    verifica_funcion(p[1])
+
 def p_asignacion(p):
-    '''asignacion : ID lista ASIG exp_input PUNTCOM'''
+    '''asignacion : ID actualiza_id lista ASIG exp_input PUNTCOM'''
+    if (dir_func[funcion_actual]['tabla_vars'].get(p[1]) == None) & (dir_func['global']['tabla_vars'].get(p[1]) == None):
+        raise SyntaxError
+
+def p_asignacion_error(p):
+    '''asignacion : error'''
+    print("Variable %s not declared." %(id_actual))
 
 def p_exp_input(p):
     '''exp_input : expresion
@@ -204,6 +222,7 @@ def p_lista(p):
     '''lista : CORIZQ expresion CORDER matriz
              | '''
     # agrega p[2] como dimension #1 a id_actual
+    # TODO verificar Buffer Overflow
     if (len(p) > 2):
         global dir_func
         dir_func[funcion_actual]['tabla_vars'][id_actual]['tam1'] = p[2]
@@ -212,23 +231,33 @@ def p_matriz(p):
     '''matriz : CORIZQ expresion CORDER
               | '''
     # agrega p[2] como dimension #2 a id_actual
+    # TODO verificar Buffer Overflow
     if (len(p) > 2):
         global dir_func
         dir_func[funcion_actual]['tabla_vars'][id_actual]['tam2'] = p[2]
 
 def p_var(p):
-    '''var : ID lista
+    '''var : ID actualiza_id var_func_call
            | CTE_I
            | CTE_F'''
 
-def p_func_call(p):
-    '''func_call : ID PARIZQ args PARDER'''
+def p_var_func_call(p):
+    '''var_func_call : PARIZQ args PARDER
+                     | lista'''
+    if len(p) > 2:
+        verifica_funcion(id_actual)
+    else:
+        if (dir_func[funcion_actual]['tabla_vars'].get(id_actual) == None) & (dir_func['global']['tabla_vars'].get(id_actual) == None):
+            print("Variable %s no declarada." %(id_actual))
+            # TODO generar error.
+
+def verifica_funcion(p):
     global num_args
-    if dir_func.get(p[1]) == None:
-        print("Funcion %s no declarada." %(p[1]))
+    if dir_func.get(p) == None:
+        print("Funcion %s no declarada." %(p))
         # TODO llamar error
-    elif num_args != dir_func[p[1]]['num_pars']:
-        print('Funcion %s requiere %d parametros %d dados.' %(p[1], dir_func[p[1]]['num_pars'], num_args))
+    elif num_args != dir_func[p]['num_pars']:
+        print('Funcion %s requiere %d parametros %d dados.' %(p, dir_func[p]['num_pars'], num_args))
         # TODO llamar error
     #else:
     #   llamar funcion
@@ -247,7 +276,6 @@ def p_arg(p):
     if len(p) > 1:
         global num_args
         num_args += 1
-
 
 def p_bloque(p):
     ''' bloque : BRAIZQ estatutos BRADER '''
@@ -299,7 +327,7 @@ def main():
     tokens = scanner.tokens
     parser = yacc.yacc()
     with open(str(sys.argv[1]), 'r') as file:
-        data=file.read().replace('\n', '')
+        data=file.read()
         file.close()
         parser.parse(data)
     print(json.dumps(dir_func, indent=4))
