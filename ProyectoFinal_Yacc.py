@@ -1,8 +1,9 @@
-#Proyecto Final - Compiladores
-#Autores: Carmelo Ramirez (A01175987) y Juan Pablo Galaz (A01251406)
+# Proyecto Final - Compiladores
+# Autores: Carmelo Ramirez (A01175987) y Juan Pablo Galaz (A01251406)
 
 import ply.yacc as yacc
 import ProyectoFinal_Lex as scanner
+import TablaSemantica as tb
 import sys
 import json
 
@@ -20,6 +21,7 @@ funcion_actual = ""
 tipo_actual = ""
 id_actual = ""
 num_args = 0
+tabla_semantica = tb.TablaSemantica()
 
 # DEFINICION DE LAS REGLAS DE LA GRAMATICA
 def p_programa(p):
@@ -116,22 +118,44 @@ def p_crea_func(p):
         print("Funcion %s ya declarada" %(funcion_actual))
         # TODO generar error
 
+def verificar_tipo(p1, p2):
+    if type(p2) is str:
+        return p1
+    else:
+        tipo = tabla_semantica.tipo(p1, p2[1], p2[0])
+        if tipo == '':
+            print("Type Mismatch %s , %s" %(p1, p2[1]))
+            # TODO generar error
+        else:
+            return tipo
+
 def p_expresion(p):
     '''expresion : expr or_expr'''
+    p[0] = verificar_tipo(p[1], p[2])
 
 def p_or_expr(p):
     '''or_expr : OR expresion
                | '''
+    if len(p) > 1:
+        p[0] = [p[1], p[2]]
+    else:
+        p[0] = 'None'
 
 def p_expr(p):
     '''expr : exp and_exp'''
+    p[0] = verificar_tipo(p[1], p[2])
 
 def p_and_exp(p):
     '''and_exp : AND expr
                | '''
+    if len(p) > 1:
+        p[0] = [p[1], p[2]]
+    else:
+        p[0] = 'None'
 
 def p_exp(p):
     '''exp : e rel_e'''
+    p[0] = verificar_tipo(p[1], p[2])
 
 def p_rel_e(p):
     '''rel_e : DIF exp
@@ -141,28 +165,46 @@ def p_rel_e(p):
              | MAYIGUAL exp
              | IGUAL exp
              |'''
+    if len(p) > 1:
+        p[0] = [p[1], p[2]]
+    else:
+        p[0] = 'None'
 
 def p_e(p):
     '''e : termino suma_resta'''
+    p[0] = verificar_tipo(p[1], p[2])
 
 def p_suma_resta(p):
     '''suma_resta : SUMA e
                   | RESTA e
                   | '''
+    if len(p) > 1:
+        p[0] = [p[1], p[2]]
+    else:
+        p[0] = 'None'
 
 def p_termino(p):
     '''termino : factor mult_div'''
+    p[0] = verificar_tipo(p[1], p[2])
 
-def p_mult_div(p):
+def p_mult(p):
     '''mult_div : MULT termino
                 | DIV termino
                 | '''
+    if len(p) > 1:
+        p[0] = [p[1], p[2]]
+    else:
+        p[0] = 'None'
 
 def p_factor(p):
     '''factor : PARIZQ e PARDER
               | var
               | SUMA var
               | RESTA var'''
+    if len(p) > 2:
+        p[0] = p[2]
+    else:
+        p[0] = p[1]
 
 def p_estatuto(p):
     '''estatuto : asignacion
@@ -178,8 +220,17 @@ def p_func_call(p):
 
 def p_asignacion(p):
     '''asignacion : ID actualiza_id lista ASIG exp_input PUNTCOM'''
-    if (dir_func[funcion_actual]['tabla_vars'].get(p[1]) == None) & (dir_func['global']['tabla_vars'].get(p[1]) == None):
-        raise SyntaxError
+    if dir_func[funcion_actual]['tabla_vars'].get(p[1]) == None:
+        if dir_func['global']['tabla_vars'].get(p[1]) == None:
+            raise SyntaxError
+        else:
+            if (dir_func['global']['tabla_vars'][p[1]]['tipo'] != p[5]):
+                print("Type Mismatch %s , %s." %(p[1], p[5]))
+                # o Hacer typecasting
+    else:
+        if (dir_func[funcion_actual]['tabla_vars'][p[1]]['tipo'] != p[5]):
+            print("Type Mismatch %s , %s." %(p[1], p[5]))
+            # o Hacer typecasting
 
 def p_asignacion_error(p):
     '''asignacion : error'''
@@ -188,9 +239,15 @@ def p_asignacion_error(p):
 def p_exp_input(p):
     '''exp_input : expresion
                  | INPUT PARIZQ PARDER'''
+    if len(p) > 2:
+        print("Input")
+    else:
+        p[0] = p[1]
 
 def p_condicion(p):
     '''condicion : IF PARIZQ expresion PARDER bloque else_bloque'''
+    if p[3] != 'int':
+        print("Type Mismatch Expected int recieved %s." %(p[3]))
 
 def p_else_bloque(p):
     '''else_bloque : ELSE bloque
@@ -208,6 +265,8 @@ def p_args_escritura(p):
 
 def p_ciclo(p):
     '''ciclo : REPEAT PARIZQ expresion PARDER bloque'''
+    if p[3] != 'int':
+        print("Type Mismatch Expected int recieved %s." %(p[3]))
 
 def p_tipo(p):
     '''tipo : INT actualiza_tipo
@@ -237,31 +296,50 @@ def p_matriz(p):
         dir_func[funcion_actual]['tabla_vars'][id_actual]['tam2'] = p[2]
 
 def p_var(p):
-    '''var : ID actualiza_id var_func_call
-           | CTE_I
-           | CTE_F'''
+    '''var : ID actualiza_id var_func_call'''
+    p[0] = p[3]
+
+def p_var_int(p):
+    '''var : CTE_I'''
+    p[0] = 'int'
+
+def p_var_float(p):
+    '''var : CTE_F'''
+    p[0] = 'float'
 
 def p_var_func_call(p):
     '''var_func_call : PARIZQ args PARDER
                      | lista'''
     if len(p) > 2:
-        verifica_funcion(id_actual)
-    else:
-        if (dir_func[funcion_actual]['tabla_vars'].get(id_actual) == None) & (dir_func['global']['tabla_vars'].get(id_actual) == None):
-            print("Variable %s no declarada." %(id_actual))
-            # TODO generar error.
+        p[0] = verifica_funcion(id_actual)
+    else:            
+        if dir_func[funcion_actual]['tabla_vars'].get(id_actual) == None:
+            if dir_func['global']['tabla_vars'].get(id_actual) == None:
+                print("Variable %s no declarada." %(id_actual))
+                p[0] = 'None'
+                # TODO generar error.
+            else:
+                p[0] = dir_func['global']['tabla_vars'][id_actual]['tipo']
+        else:
+            p[0] = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
+
 
 def verifica_funcion(p):
     global num_args
+    tipo = ''
     if dir_func.get(p) == None:
         print("Funcion %s no declarada." %(p))
+        tipo = 'None'
         # TODO llamar error
     elif num_args != dir_func[p]['num_pars']:
         print('Funcion %s requiere %d parametros %d dados.' %(p, dir_func[p]['num_pars'], num_args))
+        tipo = dir_func[p]['tipo']
         # TODO llamar error
-    #else:
-    #   llamar funcion
+    else:
+        tipo = dir_func[p]['tipo']
+        # llamar funcion
     num_args = 0
+    return tipo
 
 def p_args(p):
     '''args : expresion arg
