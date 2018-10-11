@@ -13,8 +13,8 @@ precedence = (
     ('left','SUMA','RESTA'),
     ('left','MULT','DIV'),
 )
-# dir_func = {nombre, tipo, num_pars, tabla_vars}
-# tabla_vars = {nombre, tipo, tam1, tam2}
+# dir_func = {nombre, tipo, tamano, secuencia_par, tabla_vars, dir_inicio}
+# tabla_vars = {nombre, tipo, tam1, tam2, dir_virual}
 dir_func = {}
 id_programa = ""
 funcion_actual = ""
@@ -22,6 +22,8 @@ tipo_actual = ""
 id_actual = ""
 num_args = 0
 tabla_semantica = tb.TablaSemantica()
+pila_operadores = []
+pila_operandos = []
 
 # DEFINICION DE LAS REGLAS DE LA GRAMATICA
 def p_programa(p):
@@ -118,93 +120,114 @@ def p_crea_func(p):
         print("Funcion %s ya declarada" %(funcion_actual))
         # TODO generar error
 
-def verificar_tipo(p1, p2):
-    if type(p2) is str:
-        return p1
-    else:
-        tipo = tabla_semantica.tipo(p1, p2[1], p2[0])
-        if tipo == '':
-            print("Type Mismatch %s , %s" %(p1, p2[1]))
-            # TODO generar error
+def p_push_oper(p):
+    '''push_oper : '''
+    global pila_operadores
+    pila_operadores.append(p[-1])
+
+def pop_oper(operadores):
+    global pila_operadores
+    global pila_operandos
+    if len(pila_operadores) == 0 : return
+    pop = False
+    for i in operadores:
+        print(i, pila_operadores[-1])
+        if i == pila_operadores[-1]:
+            pop = True
+    if pop:
+        der = pila_operandos.pop()
+        izq = pila_operandos.pop()
+        oper = pila_operadores.pop()
+        tipo_res = tabla_semantica.tipo(der['tipo'], izq['tipo'], oper)
+        if tipo_res != '':
+            result = 'temp'
+            # result = 
+            # genera quad  oper der izq result
+            # push quad
+            pila_operandos.append({'nombre': result, 'tipo' : 'float'})
+            print(oper, ' ', der['nombre'] ,' ', izq['nombre'], ' ', result)
         else:
-            return tipo
+            print("Type Mismatch")
+def p_pop_or(p):
+    '''pop_or : '''
+    pop_oper(['||'])
+
+def p_pop_and(p):
+    '''pop_and : '''
+    pop_oper(['&&'])
+
+def p_pop_rel_e(p):
+    '''pop_rel_e : '''
+    pop_oper(['!=', '<', '>', '<=', '>=', '=='])
+
+def p_pop_suma_resta(p):
+    '''pop_suma_resta : '''
+    pop_oper(['+', '-'])
+
+def p_pop_mult_div(p):
+    '''pop_mult_div : '''
+    pop_oper(['*', '/'])
 
 def p_expresion(p):
-    '''expresion : expr or_expr'''
-    p[0] = verificar_tipo(p[1], p[2])
+    '''expresion : expr pop_or or_expr'''
 
 def p_or_expr(p):
-    '''or_expr : OR expresion
+    '''or_expr : OR push_oper expresion
                | '''
-    if len(p) > 1:
-        p[0] = [p[1], p[2]]
-    else:
-        p[0] = 'None'
 
 def p_expr(p):
-    '''expr : exp and_exp'''
-    p[0] = verificar_tipo(p[1], p[2])
+    '''expr : exp pop_and and_exp'''
 
 def p_and_exp(p):
-    '''and_exp : AND expr
+    '''and_exp : AND push_oper expr
                | '''
-    if len(p) > 1:
-        p[0] = [p[1], p[2]]
-    else:
-        p[0] = 'None'
 
 def p_exp(p):
-    '''exp : e rel_e'''
-    p[0] = verificar_tipo(p[1], p[2])
+    '''exp : e pop_rel_e rel_e'''
 
 def p_rel_e(p):
-    '''rel_e : DIF exp
-             | MENOR exp
-             | MAYOR exp
-             | MENIGUAL exp
-             | MAYIGUAL exp
-             | IGUAL exp
+    '''rel_e : DIF push_oper exp
+             | MENOR push_oper exp
+             | MAYOR push_oper  exp
+             | MENIGUAL push_oper exp
+             | MAYIGUAL push_oper exp
+             | IGUAL push_oper exp
              |'''
-    if len(p) > 1:
-        p[0] = [p[1], p[2]]
-    else:
-        p[0] = 'None'
 
 def p_e(p):
-    '''e : termino suma_resta'''
-    p[0] = verificar_tipo(p[1], p[2])
+    '''e : termino pop_suma_resta suma_resta'''
 
 def p_suma_resta(p):
-    '''suma_resta : SUMA e
-                  | RESTA e
+    '''suma_resta : SUMA push_oper e
+                  | RESTA push_oper e
                   | '''
-    if len(p) > 1:
-        p[0] = [p[1], p[2]]
-    else:
-        p[0] = 'None'
 
 def p_termino(p):
-    '''termino : factor mult_div'''
-    p[0] = verificar_tipo(p[1], p[2])
+    '''termino : factor pop_mult_div mult_div'''
+
 
 def p_mult(p):
-    '''mult_div : MULT termino
-                | DIV termino
+    '''mult_div : MULT push_oper termino
+                | DIV push_oper termino
                 | '''
-    if len(p) > 1:
-        p[0] = [p[1], p[2]]
-    else:
-        p[0] = 'None'
 
 def p_factor(p):
-    '''factor : PARIZQ e PARDER
+    '''factor : PARIZQ push_paren e PARDER pop_paren
               | var
               | SUMA var
               | RESTA var'''
-    if len(p) > 2:
-        p[0] = p[2]
-    else:
-        p[0] = p[1]
+
+def p_push_paren(p):
+    '''push_paren : '''
+    global pila_operadores
+    pila_operadores.append('(')
+
+def p_pop_paren(p):
+    '''pop_paren : '''
+    global pila_operadores
+    top = pila_operadores.pop()
+    if top != ')':
+        print('Error') 
 
 def p_estatuto(p):
     '''estatuto : asignacion
@@ -220,17 +243,6 @@ def p_func_call(p):
 
 def p_asignacion(p):
     '''asignacion : ID actualiza_id lista ASIG exp_input PUNTCOM'''
-    if dir_func[funcion_actual]['tabla_vars'].get(p[1]) == None:
-        if dir_func['global']['tabla_vars'].get(p[1]) == None:
-            raise SyntaxError
-        else:
-            if (dir_func['global']['tabla_vars'][p[1]]['tipo'] != p[5]):
-                print("Type Mismatch %s , %s." %(p[1], p[5]))
-                # o Hacer typecasting
-    else:
-        if (dir_func[funcion_actual]['tabla_vars'][p[1]]['tipo'] != p[5]):
-            print("Type Mismatch %s , %s." %(p[1], p[5]))
-            # o Hacer typecasting
 
 def p_asignacion_error(p):
     '''asignacion : error'''
@@ -239,15 +251,9 @@ def p_asignacion_error(p):
 def p_exp_input(p):
     '''exp_input : expresion
                  | INPUT PARIZQ PARDER'''
-    if len(p) > 2:
-        print("Input")
-    else:
-        p[0] = p[1]
 
 def p_condicion(p):
     '''condicion : IF PARIZQ expresion PARDER bloque else_bloque'''
-    if p[3] != 'int':
-        print("Type Mismatch Expected int recieved %s." %(p[3]))
 
 def p_else_bloque(p):
     '''else_bloque : ELSE bloque
@@ -265,8 +271,6 @@ def p_args_escritura(p):
 
 def p_ciclo(p):
     '''ciclo : REPEAT PARIZQ expresion PARDER bloque'''
-    if p[3] != 'int':
-        print("Type Mismatch Expected int recieved %s." %(p[3]))
 
 def p_tipo(p):
     '''tipo : INT actualiza_tipo
@@ -297,31 +301,34 @@ def p_matriz(p):
 
 def p_var(p):
     '''var : ID actualiza_id var_func_call'''
-    p[0] = p[3]
 
 def p_var_int(p):
     '''var : CTE_I'''
-    p[0] = 'int'
+    global pila_operandos
+    pila_operandos.append({'nombre': p[-1], 'tipo' : 'int'})
 
 def p_var_float(p):
     '''var : CTE_F'''
-    p[0] = 'float'
+    global pila_operandos
+    pila_operandos.append({'nombre': p[-1], 'tipo' : 'float'})
 
 def p_var_func_call(p):
     '''var_func_call : PARIZQ args PARDER
                      | lista'''
+    global pila_operandos
     if len(p) > 2:
-        p[0] = verifica_funcion(id_actual)
+        verifica_funcion(id_actual)
     else:            
         if dir_func[funcion_actual]['tabla_vars'].get(id_actual) == None:
             if dir_func['global']['tabla_vars'].get(id_actual) == None:
                 print("Variable %s no declarada." %(id_actual))
-                p[0] = 'None'
                 # TODO generar error.
             else:
-                p[0] = dir_func['global']['tabla_vars'][id_actual]['tipo']
+                tipo = dir_func['global']['tabla_vars'][id_actual]['tipo']
+                pila_operandos.append({'nombre': id_actual, 'tipo' : tipo})
         else:
-            p[0] = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
+            tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
+            pila_operandos.append({'nombre': id_actual, 'tipo' : tipo})
 
 
 def verifica_funcion(p):
