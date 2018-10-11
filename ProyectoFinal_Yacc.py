@@ -4,6 +4,7 @@
 import ply.yacc as yacc
 import ProyectoFinal_Lex as scanner
 import TablaSemantica as tb
+import Quad as q
 import sys
 import json
 
@@ -24,7 +25,8 @@ num_args = 0
 tabla_semantica = tb.TablaSemantica()
 pila_operadores = []
 pila_operandos = []
-
+pila_saltos = []
+quads = q.Quad()
 # DEFINICION DE LAS REGLAS DE LA GRAMATICA
 def p_programa(p):
     '''programa : MODULE ID creaDirFunc PUNTCOM ajustes var_func tipo_main MAIN actualiza_id crea_func bloque_func'''
@@ -131,7 +133,6 @@ def pop_oper(operadores):
     if len(pila_operadores) == 0 : return
     pop = False
     for i in operadores:
-        print(i, pila_operadores[-1])
         if i == pila_operadores[-1]:
             pop = True
     if pop:
@@ -140,14 +141,14 @@ def pop_oper(operadores):
         oper = pila_operadores.pop()
         tipo_res = tabla_semantica.tipo(der['tipo'], izq['tipo'], oper)
         if tipo_res != '':
-            result = 'temp'
-            # result = 
-            # genera quad  oper der izq result
-            # push quad
-            pila_operandos.append({'nombre': result, 'tipo' : 'float'})
-            print(oper, ' ', der['nombre'] ,' ', izq['nombre'], ' ', result)
+            # TODO result = siguiente variable temp
+            result = 'temp' + str(quads.contador)
+            # TODO cambiar nombre por dir_virtual
+            quads.genera(oper, izq['nombre'], der['nombre'], result)
+            pila_operandos.append({'nombre': result, 'tipo' : tipo_res})
         else:
             print("Type Mismatch")
+
 def p_pop_or(p):
     '''pop_or : '''
     pop_oper(['||'])
@@ -270,7 +271,35 @@ def p_args_escritura(p):
                       | '''
 
 def p_ciclo(p):
-    '''ciclo : REPEAT PARIZQ expresion PARDER bloque'''
+    '''ciclo : REPEAT push_cont PARIZQ expresion fin_exp_repeat PARDER bloque fin_repeat'''
+
+def p_push_cont(p):
+    '''push_cont : '''
+    global quads
+    pila_saltos.append(quads.contador)
+
+def p_fin_exp_repeat(p):
+    '''fin_exp_repeat : '''
+    global quads
+    global pila_operandos
+    global pila_saltos
+    val_esp = pila_operandos.pop()
+    if val_esp['tipo'] == 'int':
+        quads.genera('gotof',val_esp['nombre'], None, None)
+        pila_saltos.append(quads.contador - 1)
+    else:
+        print("Type Mismatch") 
+
+def p_fin_repeat(p):
+    '''fin_repeat : '''
+    global quads
+    global pila_saltos
+    fin = pila_saltos.pop()
+    retorno = pila_saltos.pop()
+    print(fin, ' : ', fin)
+    print(fin, ' : ', retorno)
+    quads.genera('goto', None, None, retorno)
+    quads.rellena(fin)
 
 def p_tipo(p):
     '''tipo : INT actualiza_tipo
@@ -305,12 +334,12 @@ def p_var(p):
 def p_var_int(p):
     '''var : CTE_I'''
     global pila_operandos
-    pila_operandos.append({'nombre': p[-1], 'tipo' : 'int'})
+    pila_operandos.append({'nombre': p[1], 'tipo' : 'int'})
 
 def p_var_float(p):
     '''var : CTE_F'''
     global pila_operandos
-    pila_operandos.append({'nombre': p[-1], 'tipo' : 'float'})
+    pila_operandos.append({'nombre': p[1], 'tipo' : 'float'})
 
 def p_var_func_call(p):
     '''var_func_call : PARIZQ args PARDER
@@ -416,6 +445,7 @@ def main():
         file.close()
         parser.parse(data)
     print(json.dumps(dir_func, indent=4))
+    print(quads.quads)
 
 if __name__ == '__main__':
     main()
