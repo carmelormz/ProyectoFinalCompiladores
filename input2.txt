@@ -1,0 +1,10 @@
+module hello_world;
+import "hello"
+main {
+    int mainvar8;
+    mainvar8 = 9.9 + mainvar8 * 9 * 9 / 9;
+    repeat(9 + 9){
+        mainvar8 = 9.9 + 10;
+    }
+    return;
+}
