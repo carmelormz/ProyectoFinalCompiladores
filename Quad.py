@@ -26,4 +26,4 @@ class Quad:
         self.quads.append([operador, op_izq, op_der, res])
         self.contador += 1
     def rellena(self, val):
-        self.quads[val][3] = self.contador
+        self.quads[val - 1][3] = self.contador

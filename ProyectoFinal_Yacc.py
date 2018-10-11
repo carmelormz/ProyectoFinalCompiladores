@@ -296,8 +296,6 @@ def p_fin_repeat(p):
     global pila_saltos
     fin = pila_saltos.pop()
     retorno = pila_saltos.pop()
-    print(fin, ' : ', fin)
-    print(fin, ' : ', retorno)
     quads.genera('goto', None, None, retorno)
     quads.rellena(fin)
 
