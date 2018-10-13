@@ -25,7 +25,7 @@ class TablaSemantica:
         self.operandos = {'int':0, 'float':1, 'None': 2}
         self.operadores = {'||':0, '&&':1, '!=':2, '<':3, '>':4,
                            '==':5, '<=':6, '>=':7, '+':8, '-':9,
-                           '*':10, '/':11}
+                           '*':10, '/':11, '=':12}
         self.tabla_semantica = [([(['' for i in range(len(self.operadores))]) for i in range(len(self.operandos))]) for i in range(len(self.operandos))]
         self.llenar('int', 'int', '||', 'int')
         self.llenar('int', 'int', '&&', 'int')
@@ -39,6 +39,7 @@ class TablaSemantica:
         self.llenar('int', 'int', '-', 'int')
         self.llenar('int', 'int', '*', 'int')
         self.llenar('int', 'int', '/', 'int')
+        self.llenar('int', 'int', '=', 'int')
 
         self.llenar('int', 'float', '||', 'int')
         self.llenar('int', 'float', '&&', 'int')
@@ -52,6 +53,7 @@ class TablaSemantica:
         self.llenar('int', 'float', '-', 'float')
         self.llenar('int', 'float', '*', 'float')
         self.llenar('int', 'float', '/', 'float')
+        self.llenar('int', 'float', '=', 'float')
 
         self.llenar('int', 'None', '+', 'int')
         self.llenar('int', 'None', '-', 'int')
@@ -68,6 +70,7 @@ class TablaSemantica:
         self.llenar('float', 'int', '-', 'float')
         self.llenar('float', 'int', '*', 'float')
         self.llenar('float', 'int', '/', 'float')
+        self.llenar('float', 'int', '=', 'float')
 
         self.llenar('float', 'float', '||', 'int')
         self.llenar('float', 'float', '&&', 'int')
@@ -81,6 +84,7 @@ class TablaSemantica:
         self.llenar('float', 'float', '-', 'float')
         self.llenar('float', 'float', '*', 'float')
         self.llenar('float', 'float', '/', 'float')
+        self.llenar('float', 'float', '=', 'float')
 
         self.llenar('float', 'None', '+', 'float')
         self.llenar('float', 'None', '-', 'float')

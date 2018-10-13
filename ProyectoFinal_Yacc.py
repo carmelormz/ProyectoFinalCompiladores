@@ -244,6 +244,14 @@ def p_func_call(p):
 
 def p_asignacion(p):
     '''asignacion : ID actualiza_id lista ASIG exp_input PUNTCOM'''
+    global quads
+    global pila_operandos
+    tempRes = pila_operandos.pop()
+    if tempRes['tipo'] == 'int' or tempRes['tipo'] == 'float':
+        quads.genera('=', tempRes['nombre'], None, p[1])
+    else:
+        print('hola Type Mismatch')
+
 
 def p_asignacion_error(p):
     '''asignacion : error'''
