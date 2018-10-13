@@ -21,12 +21,14 @@ id_programa = ""
 funcion_actual = ""
 tipo_actual = ""
 id_actual = ""
+instr_actual =""
 num_args = 0
 tabla_semantica = tb.TablaSemantica()
 pila_operadores = []
 pila_operandos = []
 pila_saltos = []
 quads = q.Quad()
+tempNum = 1
 # DEFINICION DE LAS REGLAS DE LA GRAMATICA
 def p_programa(p):
     '''programa : MODULE ID creaDirFunc PUNTCOM ajustes var_func tipo_main MAIN actualiza_id crea_func bloque_func'''
@@ -130,6 +132,7 @@ def p_push_oper(p):
 def pop_oper(operadores):
     global pila_operadores
     global pila_operandos
+    global tempNum
     if len(pila_operadores) == 0 : return
     pop = False
     for i in operadores:
@@ -142,7 +145,8 @@ def pop_oper(operadores):
         tipo_res = tabla_semantica.tipo(der['tipo'], izq['tipo'], oper)
         if tipo_res != '':
             # TODO result = siguiente variable temp
-            result = 'temp' + str(quads.contador)
+            result = 'temp' + str(tempNum)
+            tempNum += 1
             # TODO cambiar nombre por dir_virtual
             quads.genera(oper, izq['nombre'], der['nombre'], result)
             pila_operandos.append({'nombre': result, 'tipo' : tipo_res})
@@ -170,45 +174,26 @@ def p_pop_mult_div(p):
     pop_oper(['*', '/'])
 
 def p_expresion(p):
-    '''expresion : expr pop_or or_expr'''
-
-def p_or_expr(p):
-    '''or_expr : OR push_oper expresion
-               | '''
-
-def p_expr(p):
-    '''expr : exp pop_and and_exp'''
-
-def p_and_exp(p):
-    '''and_exp : AND push_oper expr
-               | '''
-
-def p_exp(p):
-    '''exp : e pop_rel_e rel_e'''
-
-def p_rel_e(p):
-    '''rel_e : DIF push_oper exp
+    '''expresion : expr pop_or or_expr
+       or_expr : OR push_oper expresion
+               | 
+       expr : exp pop_and and_exp
+       and_exp : AND push_oper expr
+               | 
+       exp : e pop_rel_e rel_e
+       rel_e : DIF push_oper exp
              | MENOR push_oper exp
              | MAYOR push_oper  exp
              | MENIGUAL push_oper exp
              | MAYIGUAL push_oper exp
              | IGUAL push_oper exp
-             |'''
-
-def p_e(p):
-    '''e : termino pop_suma_resta suma_resta'''
-
-def p_suma_resta(p):
-    '''suma_resta : SUMA push_oper e
+             |
+       e : termino pop_suma_resta suma_resta
+       suma_resta : SUMA push_oper e
                   | RESTA push_oper e
-                  | '''
-
-def p_termino(p):
-    '''termino : factor pop_mult_div mult_div'''
-
-
-def p_mult(p):
-    '''mult_div : MULT push_oper termino
+                  | 
+       termino : factor pop_mult_div mult_div
+       mult_div : MULT push_oper termino
                 | DIV push_oper termino
                 | '''
 
@@ -250,8 +235,7 @@ def p_asignacion(p):
     if tempRes['tipo'] == 'int' or tempRes['tipo'] == 'float':
         quads.genera('=', tempRes['nombre'], None, p[1])
     else:
-        print('hola Type Mismatch')
-
+        print('Type Mismatch')
 
 def p_asignacion_error(p):
     '''asignacion : error'''
@@ -262,32 +246,27 @@ def p_exp_input(p):
                  | INPUT PARIZQ PARDER'''
 
 def p_condicion(p):
-    '''condicion : IF PARIZQ expresion PARDER bloque else_bloque'''
-
-def p_else_bloque(p):
-    '''else_bloque : ELSE bloque
+    '''condicion : IF PARIZQ expresion fin_exp PARDER bloque else_bloque fin_cond
+       else_bloque : ELSE inicio_else bloque
                    | '''
-def p_escritura(p):
-    '''escritura : PRINT PARIZQ arg_escritura PARDER PUNTCOM'''
 
-def p_arg_escritura(p):
-    '''arg_escritura : expresion args_escritura
-                     | CTE_STR args_escritura'''
-
-def p_args_escritura(p):
-    '''args_escritura : COMA arg_escritura
-                      | '''
-
-def p_ciclo(p):
-    '''ciclo : REPEAT push_cont PARIZQ expresion fin_exp_repeat PARDER bloque fin_repeat'''
-
-def p_push_cont(p):
-    '''push_cont : '''
+def p_fin_cond(p):
+    '''fin_cond : '''
     global quads
-    pila_saltos.append(quads.contador)
+    global pila_saltos
+    quads.rellena(pila_saltos.pop())
+
+def p_inicio_else(p):
+    '''inicio_else : '''
+    global quads
+    global pila_saltos
+    quads.genera('goto', None, None, None)
+    falso = pila_saltos.pop()
+    pila_saltos.append(quads.contador - 1)
+    quads.rellena(falso)
 
 def p_fin_exp_repeat(p):
-    '''fin_exp_repeat : '''
+    '''fin_exp : '''
     global quads
     global pila_operandos
     global pila_saltos
@@ -298,6 +277,15 @@ def p_fin_exp_repeat(p):
     else:
         print("Type Mismatch") 
 
+def p_ciclo(p):
+    '''ciclo : REPEAT push_cont PARIZQ expresion fin_exp PARDER bloque fin_repeat'''
+
+def p_push_cont(p):
+    '''push_cont : '''
+    global quads
+    global pila_saltos
+    pila_saltos.append(quads.contador)
+
 def p_fin_repeat(p):
     '''fin_repeat : '''
     global quads
@@ -306,6 +294,26 @@ def p_fin_repeat(p):
     retorno = pila_saltos.pop()
     quads.genera('goto', None, None, retorno)
     quads.rellena(fin)
+
+def p_escritura(p):
+    '''escritura : PRINT PARIZQ arg_escritura PARDER PUNTCOM
+       arg_escritura : expresion fin_arg args_escritura
+                     | CTE_STR print_string args_escritura
+       args_escritura : COMA arg_escritura
+                      | '''
+
+def p_fin_arg(p):
+    '''fin_arg : '''
+    global quads
+    global pila_operandos
+    val_esp = pila_operandos.pop()
+    quads.genera('print', val_esp['nombre'], None, None)
+    
+
+def p_print_string(p):
+    '''print_string : '''
+    global quads
+    quads.genera('print', p[-1], None, None)
 
 def p_tipo(p):
     '''tipo : INT actualiza_tipo
@@ -413,33 +421,65 @@ def p_par(p):
         dir_func[funcion_actual]['num_pars'] = dir_func[funcion_actual]['num_pars'] + 1
 
 def p_instruccion(p):
-    '''instruccion : FORWARD PARIZQ expresion PARDER PUNTCOM
-                   | BACKWARD PARIZQ expresion PARDER PUNTCOM
-                   | LEFT PARIZQ expresion PARDER PUNTCOM
-                   | RIGHT PARIZQ expresion PARDER PUNTCOM
-                   | TURN PARIZQ expresion PARDER PUNTCOM
-                   | SIZE PARIZQ expresion PARDER PUNTCOM
-                   | CIRCLE PARIZQ expresion PARDER transform PUNTCOM
-                   | TRIANGLE PARIZQ expresion PARDER transform PUNTCOM
-                   | SQUARE PARIZQ expresion PARDER transform PUNTCOM
-                   | NGON PARIZQ expresion COMA expresion PARDER transform PUNTCOM
-                   | ARC PARIZQ expresion COMA expresion PARDER transform PUNTCOM
-                   | UP PARIZQ PARDER PUNTCOM
-                   | DOWN PARIZQ PARDER PUNTCOM
-                   | COLOR PARIZQ expresion COMA expresion COMA expresion PARDER PUNTCOM'''
+    '''instruccion : FORWARD actualiza_instr PARIZQ expresion PARDER fin_instr1 PUNTCOM
+                   | BACKWARD actualiza_instr PARIZQ expresion PARDER fin_instr1 PUNTCOM
+                   | LEFT actualiza_instr PARIZQ expresion PARDER fin_instr1 PUNTCOM
+                   | RIGHT actualiza_instr PARIZQ expresion PARDER fin_instr1 PUNTCOM
+                   | TURN actualiza_instr PARIZQ expresion PARDER fin_instr1 PUNTCOM
+                   | SIZE actualiza_instr PARIZQ expresion PARDER fin_instr1 PUNTCOM
+                   | CIRCLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
+                   | TRIANGLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
+                   | SQUARE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
+                   | NGON actualiza_instr PARIZQ expresion COMA expresion PARDER fin_instr2 transform PUNTCOM
+                   | ARC actualiza_instr PARIZQ expresion COMA expresion PARDER fin_instr2 transform PUNTCOM
+                   | UP actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
+                   | DOWN actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
+                   | COLOR PARIZQ expresion COMA expresion COMA expresion PARDER fin_color PUNTCOM
+       transform : PUNTO altera transform
+                 | 
+       altera : ROTATE actualiza_instr PARIZQ expresion PARDER fin_instr1
+              | STRETCH actualiza_instr PARIZQ expresion PARDER fin_instr1
+              | FILL actualiza_instr PARIZQ PARDER fin_instr'''
 
-def p_transform(p):
-    '''transform : PUNTO altera transform
-                 | '''
+def p_actualiza_instr(p):
+    '''actualiza_instr : '''
+    global instr_actual
+    instr_actual = p[-1]
 
-def p_altera(p):
-    '''altera : ROTATE PARIZQ expresion PARDER
-              | STRETCH PARIZQ expresion PARDER
-              | FILL PARIZQ PARDER'''
+def p_fin_instr(p):
+    '''fin_instr : '''
+    global quads
+    global instr_actual
+    quads.genera(instr_actual, None, None, None)
+
+def p_fin_instr1(p):
+    '''fin_instr1 : '''
+    global instr_actual
+    global quads
+    global pila_operandos
+    val1 = pila_operandos.pop()
+    quads.genera(instr_actual, val1['nombre'], None, None)
+
+def p_fin_instr2(p):
+    '''fin_instr2 : '''
+    global instr_actual
+    global quads
+    global pila_operandos
+    val2 = pila_operandos.pop()
+    val1 = pila_operandos.pop()
+    quads.genera(instr_actual, val1['nombre'], val2['nombre'], None)
+
+def p_fin_color(p):
+    '''fin_color : '''
+    global quads
+    global pila_operandos
+    val3 = pila_operandos.pop()
+    val2 = pila_operandos.pop()
+    val1 = pila_operandos.pop()
+    quads.genera('colr', val1['nombre'], val2['nombre'], val3['nombre'])
 
 def p_error(p):
     print("Syntax error at token " + str(p.type) + " lineno " + str(p.lineno))
-
 
 # FUNCION PRINCIPAL PARA EVELUAR UN ARCHIVO DE TEXTO - python3 ProyectoFinal_Yacc.py archivo
 def main():
@@ -451,7 +491,8 @@ def main():
         file.close()
         parser.parse(data)
     print(json.dumps(dir_func, indent=4))
-    print(quads.quads)
+    for i in quads.quads:
+        print(i)
 
 if __name__ == '__main__':
     main()
