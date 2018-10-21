@@ -7,6 +7,7 @@ import TablaSemantica as tb
 import Quad as q
 import sys
 import json
+import sys
 
 #------------- SINTAXIS DEL LENGUAJE ---------
 
@@ -19,6 +20,7 @@ precedence = (
 dir_func = {}
 id_programa = ""
 funcion_actual = ""
+func_call = ""
 tipo_actual = ""
 id_actual = ""
 instr_actual =""
@@ -33,28 +35,45 @@ tempNum = 1
 def p_programa(p):
     '''programa : MODULE ID creaDirFunc PUNTCOM ajustes var_func tipo_main MAIN actualiza_id crea_func bloque_func'''
 
+def p_tipo_main(p):
+    '''tipo_main : '''
+    global tipo_actual
+    global quads
+    global pila_operandos
+    tipo_actual = 'void'
+    quads.rellena(1)
+
 def p_creaDirFunc(p):
     '''creaDirFunc : '''
     global dir_func
     global id_programa
     global funcion_actual
+    global quads
+    quads.genera('goto',None, None, None)
     funcion_actual = 'global'
     id_programa = p[-1]
-    dir_func['global'] = {'nombre': id_programa, 'tipo':'void', 'num_pars': 0,'tabla_vars': {}}
+    dir_func['global'] = {'nombre': id_programa, 'tipo':'void', 'secuencia_par': [],'tabla_vars': {}, 'dir_inicio': 0, 'tamano': 0}
 
 def p_ajustes(p):
     '''ajustes : CANVAS BRAIZQ WIDTH CTE_I PUNTCOM HEIGHT CTE_I PUNTCOM BACKGROUND CTE_F COMA CTE_F COMA CTE_F PUNTCOM BRADER
                | IMPORT CTE_STR'''
+    global quads
+    if len(p) > 4:
+        quads.genera('canvas', None, p[4], p[7])
+        quads.genera('background', p[10], p[12], p[14])
+    else:
+        quads.genera('import', None, None, p[2])
+
 
 def p_var_func(p):
     '''var_func : tipo ID actualiza_id var_o_func
-                | VOID tipo_void ID actualiza_id crea_func PARIZQ pars PARDER bloque_func funcs
                 | '''
 
 def p_actualiza_id(p):
     '''actualiza_id : '''
     global id_actual
     id_actual = p[-1]
+    p[0] = p[-1]
 
 def p_var_o_func(p):
     '''var_o_func : PARIZQ crea_func pars PARDER bloque_func funcs
@@ -64,65 +83,73 @@ def p_crea_var(p):
     '''crea_var : '''
     global dir_func
     if dir_func[funcion_actual]['tabla_vars'].get(id_actual) == None:
-        dir_func[funcion_actual]['tabla_vars'][id_actual] = {'nombre': id_actual, 'tipo':tipo_actual, 'tam1': 1, 'tam2': 0}
+        dir_func[funcion_actual]['tabla_vars'][id_actual] = {'nombre': id_actual, 'tipo':tipo_actual, 'tam1': 1, 'tam2': 1}
     else:
         print("Variable %s ya declarada" %(id_actual))
-        # TODO generar error
+        sys.exit()
 
 def p_bloque_func(p):
-    '''bloque_func : BRAIZQ vars_estatutos RETURN returns BRADER'''
+    '''bloque_func : BRAIZQ vars_estatutos RETURN returns BRADER end_sub'''
     global funcion_actual
     funcion_actual = 'global'
 
-def p_vars_estatutos(p):
-    '''vars_estatutos : vars estatutos
-                      | estatutos'''
+def p_end_sub(p):
+    '''end_sub : '''
+    global quads
+    quads.genera('endproc', None, None, None)
 
-def p_estatutos(p):
-    '''estatutos : estatuto estatutos
-                 | '''
+def p_vars_estatutos(p):
+    ''' vars_estatutos : vars estatutos
+                       | estatutos
+        estatutos : estatuto estatutos
+                  | 
+        vars : tipo ID actualiza_id crea_var lista vars_lista PUNTCOM mas_vars
+        vars_lista : COMA ID actualiza_id crea_var lista vars_lista
+                   |
+        mas_vars : vars
+                 | 
+        funcs : func funcs
+              |
+        func : tipo ID actualiza_id crea_func PARIZQ pars PARDER bloque_func
+             | VOID tipo_void ID actualiza_id crea_func PARIZQ pars PARDER bloque_func
+        var_func : VOID tipo_void ID actualiza_id crea_func PARIZQ pars PARDER bloque_func funcs'''
 
 def p_returns(p):
     '''returns : expresion PUNTCOM
                | PUNTCOM'''
+    global pila_operandos
+    global quads
+    if len(p) > 2:
+        quads.genera('return', None, None, None)
 
-def p_vars(p):
-    ''' vars : tipo ID actualiza_id crea_var lista vars_lista PUNTCOM mas_vars'''
+def p_pars(p):
+    '''pars : tipo ID actualiza_id crea_var lista par
+            | '''
+    if len(p) > 1:
+        dir_func[funcion_actual]['secuencia_par'].append({'nombre': p[2], 'tipo': p[1]})
 
-def p_vars_lista(p):
-    '''vars_lista : COMA ID actualiza_id crea_var lista vars_lista
-                  | '''
-def p_mas_vars(p):
-    '''mas_vars : vars
-                | '''
-def p_funcs(p):
-    '''funcs : func funcs
-             | '''
-
-def p_func(p):
-    '''func : tipo ID actualiza_id crea_func PARIZQ pars PARDER bloque_func
-            | VOID tipo_void ID actualiza_id crea_func PARIZQ pars PARDER bloque_func'''
+def p_par(p):
+    '''par : COMA tipo ID actualiza_id crea_var lista par
+           | '''
+    if len(p) > 1:
+        dir_func[funcion_actual]['secuencia_par'].append({'nombre': p[3], 'tipo': p[2]})
 
 def p_tipo_void(p):
     '''tipo_void : '''
     global tipo_actual
     tipo_actual = p[-1]
 
-def p_tipo_main(p):
-    '''tipo_main : '''
-    global tipo_actual
-    tipo_actual = 'void'
-
 def p_crea_func(p):
     '''crea_func : '''
+    global quads
     global dir_func
     global funcion_actual
     funcion_actual = id_actual
     if dir_func.get(funcion_actual) == None:
-        dir_func[funcion_actual] = {'nombre': funcion_actual, 'tipo': tipo_actual, 'num_pars': 0, 'tabla_vars': {}}
+        dir_func[funcion_actual] = {'nombre': funcion_actual, 'tipo': tipo_actual, 'secuencia_par': [], 'tabla_vars': {}, 'dir_inicio': quads.contador, 'tamano': 0}
     else:
         print("Funcion %s ya declarada" %(funcion_actual))
-        # TODO generar error
+        sys.exit()
 
 def p_push_oper(p):
     '''push_oper : '''
@@ -152,6 +179,7 @@ def pop_oper(operadores):
             pila_operandos.append({'nombre': result, 'tipo' : tipo_res})
         else:
             print("Type Mismatch")
+            sys.exit()
 
 def p_pop_or(p):
     '''pop_or : '''
@@ -174,34 +202,74 @@ def p_pop_mult_div(p):
     pop_oper(['*', '/'])
 
 def p_expresion(p):
-    '''expresion : expr pop_or or_expr
-       or_expr : OR push_oper expresion
+    '''expresion : expr or_expr
+       or_expr : OR push_oper expresion pop_or
                | 
-       expr : exp pop_and and_exp
-       and_exp : AND push_oper expr
+       expr : exp and_exp
+       and_exp : AND push_oper expr pop_and
                | 
-       exp : e pop_rel_e rel_e
-       rel_e : DIF push_oper exp
-             | MENOR push_oper exp
-             | MAYOR push_oper  exp
-             | MENIGUAL push_oper exp
-             | MAYIGUAL push_oper exp
-             | IGUAL push_oper exp
+       exp : e rel_e
+       rel_e : DIF push_oper exp pop_rel_e
+             | MENOR push_oper exp pop_rel_e
+             | MAYOR push_oper  exp pop_rel_e
+             | MENIGUAL push_oper exp pop_rel_e
+             | MAYIGUAL push_oper exp pop_rel_e
+             | IGUAL push_oper exp pop_rel_e
              |
-       e : termino pop_suma_resta suma_resta
-       suma_resta : SUMA push_oper e
-                  | RESTA push_oper e
+       e : termino suma_resta
+       suma_resta : SUMA push_oper e pop_suma_resta
+                  | RESTA push_oper e pop_suma_resta
                   | 
-       termino : factor pop_mult_div mult_div
-       mult_div : MULT push_oper termino
-                | DIV push_oper termino
+       termino : factor mult_div 
+       mult_div : MULT push_oper termino pop_mult_div
+                | DIV push_oper termino pop_mult_div
                 | '''
 
 def p_factor(p):
     '''factor : PARIZQ push_paren e PARDER pop_paren
               | var
-              | SUMA var
               | RESTA var'''
+
+def p_var(p):
+    '''var : ID actualiza_id var_func_call'''
+
+def p_var_int(p):
+    '''var : CTE_I'''
+    global pila_operandos
+    pila_operandos.append({'nombre': p[1], 'tipo' : 'int'})
+
+def p_var_float(p):
+    '''var : CTE_F'''
+    global pila_operandos
+    pila_operandos.append({'nombre': p[1], 'tipo' : 'float'})
+
+def p_var_error(p):
+    '''var : error'''
+    print("Type Mismatch")
+    sys.exit()
+
+def p_lista(p):
+    '''lista : CORIZQ expresion CORDER matriz
+             | '''
+
+def p_matriz(p):
+    '''matriz : CORIZQ expresion CORDER
+              | '''
+
+def p_var_func_call(p):
+    '''var_func_call : lista'''
+    global pila_operandos
+    global dir_func
+    if dir_func[funcion_actual]['tabla_vars'].get(id_actual) == None:
+        if dir_func['global']['tabla_vars'].get(id_actual) == None:
+            print("Variable %s no declarada." %(id_actual))
+            sys.exit()
+        else:
+            tipo = dir_func['global']['tabla_vars'][id_actual]['tipo']
+            pila_operandos.append({'nombre': id_actual, 'tipo' : tipo})
+    else:
+        tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
+        pila_operandos.append({'nombre': id_actual, 'tipo' : tipo})
 
 def p_push_paren(p):
     '''push_paren : '''
@@ -214,6 +282,7 @@ def p_pop_paren(p):
     top = pila_operadores.pop()
     if top != ')':
         print('Error') 
+        sys.exit()
 
 def p_estatuto(p):
     '''estatuto : asignacion
@@ -221,11 +290,59 @@ def p_estatuto(p):
                 | escritura
                 | ciclo
                 | instruccion
-                | func_call PUNTCOM'''
+                | func_call PUNTCOM
+       bloque : BRAIZQ estatutos BRADER '''
 
 def p_func_call(p):
-    '''func_call : ID PARIZQ args PARDER'''
-    verifica_funcion(p[1])
+    '''func_call : ID actualiza_id actualiza_func PARIZQ gen_era args PARDER gen_gosub
+       var_func_call : PARIZQ actualiza_func gen_era args PARDER gen_gosub'''
+
+def p_actualiza_func(p):
+    '''actualiza_func :'''
+    global func_call
+    func_call = id_actual
+
+def p_gen_era(p):
+    '''gen_era : '''
+    global quads
+    global dir_func
+    global num_args
+    num_args = 0
+    if dir_func.get(func_call) != None:
+        quads.genera('era', None, None, func_call)
+    else:
+        print("Function", func_call," not declared")
+        sys.exit()
+
+def p_gen_gosub(p):
+    '''gen_gosub : '''
+    global quads
+    quads.genera('gosub', None, func_call, dir_func[func_call]['dir_inicio'])
+
+def p_args(p):
+    '''args : expresion asig_par arg
+            |
+       arg : COMA args
+           | '''
+
+def p_asig_par(p):
+    '''asig_par : '''
+    global pila_operandos
+    global dir_func
+    global num_args
+    global quads
+    arg = pila_operandos.pop()
+    pars = dir_func[func_call]['secuencia_par']
+    if num_args < len(pars):
+        if pars[num_args]['tipo'] == arg['tipo']:
+            quads.genera('param', arg['nombre'], None, pars[num_args]['nombre'])
+        else:
+            print("Type Mismatch") 
+            sys.exit()
+    else:
+        print("Function", func_call, "Wrong Number of Arguments", num_args, len(pars))
+        sys.exit()
+    num_args += 1
 
 def p_asignacion(p):
     '''asignacion : ID actualiza_id lista ASIG exp_input PUNTCOM'''
@@ -240,6 +357,7 @@ def p_asignacion(p):
 def p_asignacion_error(p):
     '''asignacion : error'''
     print("Variable %s not declared." %(id_actual))
+    sys.exit()
 
 def p_exp_input(p):
     '''exp_input : expresion
@@ -309,7 +427,6 @@ def p_fin_arg(p):
     val_esp = pila_operandos.pop()
     quads.genera('print', val_esp['nombre'], None, None)
     
-
 def p_print_string(p):
     '''print_string : '''
     global quads
@@ -318,107 +435,12 @@ def p_print_string(p):
 def p_tipo(p):
     '''tipo : INT actualiza_tipo
             | FLOAT actualiza_tipo'''
+    p[0] = p[1]
 
 def p_actualiza_tipo(p):
     '''actualiza_tipo : '''
     global tipo_actual
     tipo_actual = p[-1]
-
-def p_lista(p):
-    '''lista : CORIZQ expresion CORDER matriz
-             | '''
-    # agrega p[2] como dimension #1 a id_actual
-    # TODO verificar Buffer Overflow
-    if (len(p) > 2):
-        global dir_func
-        dir_func[funcion_actual]['tabla_vars'][id_actual]['tam1'] = p[2]
-
-def p_matriz(p):
-    '''matriz : CORIZQ expresion CORDER
-              | '''
-    # agrega p[2] como dimension #2 a id_actual
-    # TODO verificar Buffer Overflow
-    if (len(p) > 2):
-        global dir_func
-        dir_func[funcion_actual]['tabla_vars'][id_actual]['tam2'] = p[2]
-
-def p_var(p):
-    '''var : ID actualiza_id var_func_call'''
-
-def p_var_int(p):
-    '''var : CTE_I'''
-    global pila_operandos
-    pila_operandos.append({'nombre': p[1], 'tipo' : 'int'})
-
-def p_var_float(p):
-    '''var : CTE_F'''
-    global pila_operandos
-    pila_operandos.append({'nombre': p[1], 'tipo' : 'float'})
-
-def p_var_func_call(p):
-    '''var_func_call : PARIZQ args PARDER
-                     | lista'''
-    global pila_operandos
-    if len(p) > 2:
-        verifica_funcion(id_actual)
-    else:            
-        if dir_func[funcion_actual]['tabla_vars'].get(id_actual) == None:
-            if dir_func['global']['tabla_vars'].get(id_actual) == None:
-                print("Variable %s no declarada." %(id_actual))
-                # TODO generar error.
-            else:
-                tipo = dir_func['global']['tabla_vars'][id_actual]['tipo']
-                pila_operandos.append({'nombre': id_actual, 'tipo' : tipo})
-        else:
-            tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
-            pila_operandos.append({'nombre': id_actual, 'tipo' : tipo})
-
-
-def verifica_funcion(p):
-    global num_args
-    tipo = ''
-    if dir_func.get(p) == None:
-        print("Funcion %s no declarada." %(p))
-        tipo = 'None'
-        # TODO llamar error
-    elif num_args != dir_func[p]['num_pars']:
-        print('Funcion %s requiere %d parametros %d dados.' %(p, dir_func[p]['num_pars'], num_args))
-        tipo = dir_func[p]['tipo']
-        # TODO llamar error
-    else:
-        tipo = dir_func[p]['tipo']
-        # llamar funcion
-    num_args = 0
-    return tipo
-
-def p_args(p):
-    '''args : expresion arg
-            | '''
-    if len(p) > 1:
-        global num_args
-        num_args += 1
-
-def p_arg(p):
-    '''arg : COMA expresion arg
-           | '''
-    if len(p) > 1:
-        global num_args
-        num_args += 1
-
-def p_bloque(p):
-    ''' bloque : BRAIZQ estatutos BRADER '''
-
-def p_pars(p):
-    '''pars : tipo ID actualiza_id crea_var lista par
-            | '''
-    if len(p) > 1:
-        dir_func[funcion_actual]['num_pars'] = dir_func[funcion_actual]['num_pars'] + 1
-
-def p_par(p):
-    '''par : COMA tipo ID actualiza_id crea_var lista par
-           | '''
-    if len(p) > 1:
-        dir_func[funcion_actual]['num_pars'] = dir_func[funcion_actual]['num_pars'] + 1
 
 def p_instruccion(p):
     '''instruccion : FORWARD actualiza_instr PARIZQ expresion PARDER fin_instr1 PUNTCOM
