@@ -16,7 +16,7 @@ precedence = (
     ('left','MULT','DIV'),
 )
 # dir_func = {nombre, tipo, tamano, secuencia_par, tabla_vars, dir_inicio}
-# tabla_vars = {nombre, tipo, tam1, tam2, dir_virual}
+# tabla_vars = {nombre, tipo, dim, dir_virual}
 dir_func = {}
 id_programa = ""
 funcion_actual = ""
@@ -52,7 +52,7 @@ def p_creaDirFunc(p):
     quads.genera('goto',None, None, None)
     funcion_actual = 'global'
     id_programa = p[-1]
-    dir_func['global'] = {'nombre': id_programa, 'tipo':'void', 'secuencia_par': [],'tabla_vars': {}, 'dir_inicio': 0, 'tamano': 0}
+    dir_func['global'] = {'nombre': id_programa, 'tipo':'void', 'secuencia_par': [],'tabla_vars': {}, 'dir_inicio': 0, 'tamano': 0, 'dir_virual': 0}
 
 def p_ajustes(p):
     '''ajustes : CANVAS BRAIZQ WIDTH CTE_I PUNTCOM HEIGHT CTE_I PUNTCOM BACKGROUND CTE_F COMA CTE_F COMA CTE_F PUNTCOM BRADER
@@ -77,16 +77,30 @@ def p_actualiza_id(p):
 
 def p_var_o_func(p):
     '''var_o_func : PARIZQ crea_func pars PARDER bloque_func funcs
-                  | crea_var lista vars_lista PUNTCOM var_func'''
+                  | crea_var lista_dec vars_lista PUNTCOM var_func'''
 
 def p_crea_var(p):
     '''crea_var : '''
     global dir_func
     if dir_func[funcion_actual]['tabla_vars'].get(id_actual) == None:
-        dir_func[funcion_actual]['tabla_vars'][id_actual] = {'nombre': id_actual, 'tipo':tipo_actual, 'tam1': 1, 'tam2': 1}
+        dir_func[funcion_actual]['tabla_vars'][id_actual] = {'nombre': id_actual, 'tipo':tipo_actual, 'dim': []}
     else:
         print("Variable %s ya declarada" %(id_actual))
         sys.exit()
+    
+def p_lista_dec(p):
+    '''lista_dec : CORIZQ CTE_I CORDER matriz_dec
+                 | '''
+    global dir_func
+    if len(p) > 2:
+        dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'].insert(0,p[2])
+
+def p_matriz_dec(p):
+    '''matriz_dec : CORIZQ CTE_I CORDER
+                  | '''
+    global dir_func
+    if len(p) > 2:
+        dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'].insert(0,p[2])
 
 def p_bloque_func(p):
     '''bloque_func : BRAIZQ vars_estatutos RETURN returns BRADER end_sub'''
@@ -103,8 +117,8 @@ def p_vars_estatutos(p):
                        | estatutos
         estatutos : estatuto estatutos
                   | 
-        vars : tipo ID actualiza_id crea_var lista vars_lista PUNTCOM mas_vars
-        vars_lista : COMA ID actualiza_id crea_var lista vars_lista
+        vars : tipo ID actualiza_id crea_var lista_dec vars_lista PUNTCOM mas_vars
+        vars_lista : COMA ID actualiza_id crea_var lista_dec vars_lista
                    |
         mas_vars : vars
                  | 
@@ -120,16 +134,16 @@ def p_returns(p):
     global pila_operandos
     global quads
     if len(p) > 2:
-        quads.genera('return', None, None, None)
+        quads.genera('return', None, None, pila_operandos[-1]['nombre'])
 
 def p_pars(p):
-    '''pars : tipo ID actualiza_id crea_var lista par
+    '''pars : tipo ID actualiza_id crea_var lista_dec par
             | '''
     if len(p) > 1:
         dir_func[funcion_actual]['secuencia_par'].append({'nombre': p[2], 'tipo': p[1]})
 
 def p_par(p):
-    '''par : COMA tipo ID actualiza_id crea_var lista par
+    '''par : COMA tipo ID actualiza_id crea_var lista_dec par
            | '''
     if len(p) > 1:
         dir_func[funcion_actual]['secuencia_par'].append({'nombre': p[3], 'tipo': p[2]})
@@ -333,9 +347,10 @@ def p_asig_par(p):
     global quads
     arg = pila_operandos.pop()
     pars = dir_func[func_call]['secuencia_par']
+    tam = len(pars)
     if num_args < len(pars):
-        if pars[num_args]['tipo'] == arg['tipo']:
-            quads.genera('param', arg['nombre'], None, pars[num_args]['nombre'])
+        if pars[tam - num_args - 1]['tipo'] == arg['tipo']:
+            quads.genera('param', arg['nombre'], None, pars[tam - num_args - 1]['nombre'])
         else:
             print("Type Mismatch") 
             sys.exit()
@@ -502,6 +517,7 @@ def p_fin_color(p):
 
 def p_error(p):
     print("Syntax error at token " + str(p.type) + " lineno " + str(p.lineno))
+    sys.exit()
 
 # FUNCION PRINCIPAL PARA EVELUAR UN ARCHIVO DE TEXTO - python3 ProyectoFinal_Yacc.py archivo
 def main():
