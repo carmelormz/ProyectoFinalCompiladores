@@ -9,6 +9,13 @@ import sys
 import json
 import sys
 
+# TODO
+# Cambiar Nombres por Direcciones Virtuales
+# Agregar Codigos de Operacion
+# Generar Codigo de arreglos
+# Agregar tipo arreglo?
+# Integrar Mapa de Memoria
+
 #------------- SINTAXIS DEL LENGUAJE ---------
 
 precedence = (
@@ -52,7 +59,7 @@ def p_creaDirFunc(p):
     quads.genera('goto',None, None, None)
     funcion_actual = 'global'
     id_programa = p[-1]
-    dir_func['global'] = {'nombre': id_programa, 'tipo':'void', 'secuencia_par': [],'tabla_vars': {}, 'dir_inicio': 0, 'tamano': 0, 'dir_virual': 0}
+    dir_func['global'] = {'nombre': id_programa, 'tipo':'void', 'secuencia_par': [],'tabla_vars': {}, 'dir_inicio': 0, 'tamano': 0}
 
 def p_ajustes(p):
     '''ajustes : CANVAS BRAIZQ WIDTH CTE_I PUNTCOM HEIGHT CTE_I PUNTCOM BACKGROUND CTE_F COMA CTE_F COMA CTE_F PUNTCOM BRADER
@@ -83,7 +90,7 @@ def p_crea_var(p):
     '''crea_var : '''
     global dir_func
     if dir_func[funcion_actual]['tabla_vars'].get(id_actual) == None:
-        dir_func[funcion_actual]['tabla_vars'][id_actual] = {'nombre': id_actual, 'tipo':tipo_actual, 'dim': []}
+        dir_func[funcion_actual]['tabla_vars'][id_actual] = {'nombre': id_actual, 'tipo':tipo_actual, 'dim': [], 'dir_virual': 0}
     else:
         print("Variable %s ya declarada" %(id_actual))
         sys.exit()
@@ -94,6 +101,12 @@ def p_lista_dec(p):
     global dir_func
     if len(p) > 2:
         dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'].insert(0,p[2])
+        if len(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim']) > 1:
+            dir_func[funcion_actual]['tamano'] += dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0]*dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][1]
+        else:
+            dir_func[funcion_actual]['tamano'] += dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0]
+    else:
+        dir_func[funcion_actual]['tamano'] += 1
 
 def p_matriz_dec(p):
     '''matriz_dec : CORIZQ CTE_I CORDER
@@ -323,7 +336,7 @@ def p_gen_era(p):
     global num_args
     num_args = 0
     if dir_func.get(func_call) != None:
-        quads.genera('era', None, None, func_call)
+        quads.genera('era', None, func_call,  dir_func[func_call]['tamano'])
     else:
         print("Function", func_call," not declared")
         sys.exit()
@@ -362,17 +375,17 @@ def p_asig_par(p):
 def p_asignacion(p):
     '''asignacion : ID actualiza_id lista ASIG exp_input PUNTCOM'''
     global quads
+    global dir_func
     global pila_operandos
     tempRes = pila_operandos.pop()
+    if dir_func[funcion_actual]['tabla_vars'].get(p[1]) == None and dir_func['global']['tabla_vars'].get(p[1]) == None:
+        print("Variable %s no declarada." %(p[1]))
+        sys.exit()
     if tempRes['tipo'] == 'int' or tempRes['tipo'] == 'float':
         quads.genera('=', tempRes['nombre'], None, p[1])
     else:
         print('Type Mismatch')
-
-def p_asignacion_error(p):
-    '''asignacion : error'''
-    print("Variable %s not declared." %(id_actual))
-    sys.exit()
+        sys.exit()
 
 def p_exp_input(p):
     '''exp_input : expresion
@@ -409,6 +422,7 @@ def p_fin_exp_repeat(p):
         pila_saltos.append(quads.contador - 1)
     else:
         print("Type Mismatch") 
+        sys.exit()
 
 def p_ciclo(p):
     '''ciclo : REPEAT push_cont PARIZQ expresion fin_exp PARDER bloque fin_repeat'''
@@ -529,8 +543,10 @@ def main():
         file.close()
         parser.parse(data)
     print(json.dumps(dir_func, indent=4))
+    j = 1
     for i in quads.quads:
-        print(i)
+        print(j, i)
+        j += 1
 
 if __name__ == '__main__':
     main()
