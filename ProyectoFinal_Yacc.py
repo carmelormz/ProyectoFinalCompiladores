@@ -4,6 +4,7 @@
 import ply.yacc as yacc
 import ProyectoFinal_Lex as scanner
 import TablaSemantica as tb
+import MapaMemoria as mm
 import Quad as q
 import sys
 import json
@@ -13,7 +14,6 @@ import sys
 # Cambiar Nombres por Direcciones Virtuales
 # Agregar Codigos de Operacion
 # Generar Codigo de arreglos
-# Agregar tipo arreglo?
 # Integrar Mapa de Memoria
 
 #------------- SINTAXIS DEL LENGUAJE ---------
@@ -38,6 +38,7 @@ pila_operandos = []
 pila_saltos = []
 quads = q.Quad()
 tempNum = 1
+mapa = mm.MapaMemoria(1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000)
 # DEFINICION DE LAS REGLAS DE LA GRAMATICA
 def p_programa(p):
     '''programa : MODULE ID creaDirFunc PUNTCOM ajustes var_func tipo_main MAIN actualiza_id crea_func bloque_func'''
@@ -89,8 +90,9 @@ def p_var_o_func(p):
 def p_crea_var(p):
     '''crea_var : '''
     global dir_func
+    global mapa
     if dir_func[funcion_actual]['tabla_vars'].get(id_actual) == None:
-        dir_func[funcion_actual]['tabla_vars'][id_actual] = {'nombre': id_actual, 'tipo':tipo_actual, 'dim': [], 'dir_virual': 0}
+        dir_func[funcion_actual]['tabla_vars'][id_actual] = {'nombre': id_actual, 'tipo':tipo_actual, 'dim': [], 'dir_virtual': 0}
     else:
         print("Variable %s ya declarada" %(id_actual))
         sys.exit()
@@ -99,14 +101,32 @@ def p_lista_dec(p):
     '''lista_dec : CORIZQ CTE_I CORDER matriz_dec
                  | '''
     global dir_func
+    global mapa
+    tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
     if len(p) > 2:
+        tam = 0
+        dir_virtual = 0
         dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'].insert(0,p[2])
         if len(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim']) > 1:
-            dir_func[funcion_actual]['tamano'] += dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0]*dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][1]
+            tam = dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0]*dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][1]
+            dir_func[funcion_actual]['tamano'] += tam
         else:
-            dir_func[funcion_actual]['tamano'] += dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0]
+            tam = dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0]
+            dir_func[funcion_actual]['tamano'] += tam
+        
+        if funcion_actual == 'global':
+            dir_virtual = mapa.creaVarGlobal(tipo, tam)
+        else:
+            dir_virtual = mapa.creaVarLocal(tipo, tam)
+        dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual'] = dir_virtual
     else:
         dir_func[funcion_actual]['tamano'] += 1
+        dir_virtual = 0
+        if funcion_actual == 'global':
+            dir_virtual = mapa.creaVarGlobal(tipo)
+        else:
+            dir_virtual = mapa.creaVarLocal(tipo)
+        dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual'] = dir_virtual
 
 def p_matriz_dec(p):
     '''matriz_dec : CORIZQ CTE_I CORDER
@@ -123,6 +143,8 @@ def p_bloque_func(p):
 def p_end_sub(p):
     '''end_sub : '''
     global quads
+    global mapa
+    mapa.finFunc()
     quads.genera('endproc', None, None, None)
 
 def p_vars_estatutos(p):
@@ -147,16 +169,17 @@ def p_returns(p):
     global pila_operandos
     global quads
     if len(p) > 2:
-        quads.genera('return', None, None, pila_operandos[-1]['nombre'])
+        tempRes = pila_operandos.pop()
+        quads.genera('return', None, None, tempRes['nombre'])
 
 def p_pars(p):
-    '''pars : tipo ID actualiza_id crea_var lista_dec par
+    '''pars : tipo ID actualiza_id crea_var par
             | '''
     if len(p) > 1:
         dir_func[funcion_actual]['secuencia_par'].append({'nombre': p[2], 'tipo': p[1]})
 
 def p_par(p):
-    '''par : COMA tipo ID actualiza_id crea_var lista_dec par
+    '''par : COMA tipo ID actualiza_id crea_var par
            | '''
     if len(p) > 1:
         dir_func[funcion_actual]['secuencia_par'].append({'nombre': p[3], 'tipo': p[2]})
@@ -171,6 +194,8 @@ def p_crea_func(p):
     global quads
     global dir_func
     global funcion_actual
+    global mapa
+    mapa.defFunc()
     funcion_actual = id_actual
     if dir_func.get(funcion_actual) == None:
         dir_func[funcion_actual] = {'nombre': funcion_actual, 'tipo': tipo_actual, 'secuencia_par': [], 'tabla_vars': {}, 'dir_inicio': quads.contador, 'tamano': 0}
@@ -187,6 +212,7 @@ def pop_oper(operadores):
     global pila_operadores
     global pila_operandos
     global tempNum
+    global mapa
     if len(pila_operadores) == 0 : return
     pop = False
     for i in operadores:
@@ -198,12 +224,14 @@ def pop_oper(operadores):
         oper = pila_operadores.pop()
         tipo_res = tabla_semantica.tipo(der['tipo'], izq['tipo'], oper)
         if tipo_res != '':
-            # TODO result = siguiente variable temp
-            result = 'temp' + str(tempNum)
-            tempNum += 1
+            dir_virtual = 0
+            if funcion_actual == 'global':
+                dir_virtual = mapa.creaVarGlobal('cte')
+            else:
+                dir_virtual = mapa.creaVarLocal('cte')
             # TODO cambiar nombre por dir_virtual
-            quads.genera(oper, izq['nombre'], der['nombre'], result)
-            pila_operandos.append({'nombre': result, 'tipo' : tipo_res})
+            quads.genera(oper, izq['nombre'], der['nombre'], dir_virtual)
+            pila_operandos.append({'nombre': dir_virtual, 'tipo' : tipo_res})
         else:
             print("Type Mismatch")
             sys.exit()
@@ -278,25 +306,128 @@ def p_var_error(p):
 def p_lista(p):
     '''lista : CORIZQ expresion CORDER matriz
              | '''
+    global dir_func
+    global pila_operandos
+    if len(p) < 2:
+        if dir_func[funcion_actual]['tabla_vars'].get(id_actual) != None:
+            if len(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim']) > 0:
+                print("Variable %s is Multidimensional" %(id_actual))
+                sys.exit()
+            else:
+                tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
+                pila_operandos.append({'nombre': id_actual, 'tipo' : tipo})
+
+    
+        elif dir_func['global']['tabla_vars'].get(id_actual) != None:
+            if len(dir_func['global']['tabla_vars'][id_actual]['dim']) > 0:
+                print("Variable %s is Multidimensional" %(id_actual))
+                sys.exit()
+            else:
+                tipo = dir_func['global']['tabla_vars'][id_actual]['tipo']
+                pila_operandos.append({'nombre': id_actual, 'tipo' : tipo})
+
+        else:
+            print("Variable %s no declarada." %(id_actual))
+            sys.exit()
 
 def p_matriz(p):
     '''matriz : CORIZQ expresion CORDER
               | '''
+    global dir_func
+    global pila_operandos
+    global quads
+    global tempNum
+    if len(p) > 2:
+        if dir_func[funcion_actual]['tabla_vars'].get(id_actual) != None:
+            if len(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim']) < 2:
+                print("Variable %s is vector not matrix" %(id_actual))
+                sys.exit()
+            else:
+                result = 'temp' + str(tempNum)
+                tempNum += 1
+                # pop twice
+                d2 = pila_operandos.pop()['nombre']
+                d1 = pila_operandos.pop()['nombre']
+                quads.genera('ver', d1, 0, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0] - 1)
+                quads.genera('*', d1, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][1], result)
+                quads.genera('ver', d2, 0, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][1] - 1)
+                quads.genera('+', d2, result, 'temp' + str(tempNum))
+                result = 'temp' + str(tempNum)
+                tempNum += 1
+                dirB = dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virual']
+                quads.genera('+', dirB, result, 'temp' + str(tempNum))
+                result = 'temp' + str(tempNum)
+                tempNum += 1
+
+                tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
+                pila_operandos.append({'nombre': result, 'tipo' : tipo})
+        elif dir_func['global']['tabla_vars'].get(id_actual) != None:
+            if len(dir_func['global']['tabla_vars'][id_actual]['dim']) < 2:
+                print("Variable %s is vector not matrix" %(id_actual))
+                sys.exit()
+            else:
+                result = 'temp' + str(tempNum)
+                tempNum += 1
+                # pop twice
+                d2 = pila_operandos.pop()['nombre']
+                d1 = pila_operandos.pop()['nombre']
+                quads.genera('ver', d1, 0, dir_func['global']['tabla_vars'][id_actual]['dim'][0] - 1)
+                quads.genera('*', d1, dir_func['global']['tabla_vars'][id_actual]['dim'][1], result)
+                quads.genera('ver', d2, 0, dir_func['global']['tabla_vars'][id_actual]['dim'][1] - 1)
+                quads.genera('+', d2, result, 'temp' + str(tempNum))
+                result = 'temp' + str(tempNum)
+                tempNum += 1
+                dirB = dir_func['global']['tabla_vars'][id_actual]['dir_virtual']
+                quads.genera('+', dirB, result, 'temp' + str(tempNum))
+                result = 'temp' + str(tempNum)
+                tempNum += 1
+
+                tipo = dir_func['global']['tabla_vars'][id_actual]['tipo']
+                pila_operandos.append({'nombre': result, 'tipo' : tipo})
+        else:
+            print("Variable %s no declarada." %(id_actual))
+            sys.exit()
+    else:
+        if dir_func[funcion_actual]['tabla_vars'].get(id_actual) != None:
+            if len(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim']) > 1:
+                print("Variable %s is matrix not vector" %(id_actual))
+                sys.exit()
+            else:
+                # pop once
+                result = 'temp' + str(tempNum)
+                tempNum += 1
+    
+                d1 = pila_operandos.pop()['nombre']
+                quads.genera('ver', d1, 0, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0] - 1)
+                dirB = dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual']
+                quads.genera('+', dirB, d1, result)
+
+                tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
+                pila_operandos.append({'nombre': result, 'tipo' : tipo})
+                print("Vector %s" %(id_actual))
+        elif dir_func['global']['tabla_vars'].get(id_actual) != None:
+            if len(dir_func['global']['tabla_vars'][id_actual]['dim']) > 1:
+                print("Variable %s is matrix not vector" %(id_actual))
+                sys.exit()
+            else:
+                # pop once
+                result = 'temp' + str(tempNum)
+                tempNum += 1
+    
+                d1 = pila_operandos.pop()['nombre']
+                quads.genera('ver', d1, 0, dir_func['global']['tabla_vars'][id_actual]['dim'][0] - 1)
+                dirB = dir_func['global']['tabla_vars'][id_actual]['dir_virtual']
+                quads.genera('+', dirB, d1, result)
+
+                tipo = dir_func['global']['tabla_vars'][id_actual]['tipo']
+                pila_operandos.append({'nombre': result, 'tipo' : tipo})
+                print("Vector %s" %(id_actual))
+        else:
+            print("Variable %s no declarada." %(id_actual))
+            sys.exit()
 
 def p_var_func_call(p):
     '''var_func_call : lista'''
-    global pila_operandos
-    global dir_func
-    if dir_func[funcion_actual]['tabla_vars'].get(id_actual) == None:
-        if dir_func['global']['tabla_vars'].get(id_actual) == None:
-            print("Variable %s no declarada." %(id_actual))
-            sys.exit()
-        else:
-            tipo = dir_func['global']['tabla_vars'][id_actual]['tipo']
-            pila_operandos.append({'nombre': id_actual, 'tipo' : tipo})
-    else:
-        tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
-        pila_operandos.append({'nombre': id_actual, 'tipo' : tipo})
 
 def p_push_paren(p):
     '''push_paren : '''
@@ -344,8 +475,13 @@ def p_gen_era(p):
 def p_gen_gosub(p):
     '''gen_gosub : '''
     global quads
+    global mapa
+    global pila_operandos
     quads.genera('gosub', None, func_call, dir_func[func_call]['dir_inicio'])
-
+    if dir_func[func_call]['tipo'] != 'void':
+        retorno = mapa.creaVarLocal('cte')
+        quads.genera('=', func_call, None, retorno)
+        pila_operandos.append({'nombre': retorno, 'tipo' : dir_func[func_call]['tipo']})
 def p_args(p):
     '''args : expresion asig_par arg
             |
@@ -378,6 +514,7 @@ def p_asignacion(p):
     global dir_func
     global pila_operandos
     tempRes = pila_operandos.pop()
+    tempAsig = pila_operandos.pop()
     if dir_func[funcion_actual]['tabla_vars'].get(p[1]) == None and dir_func['global']['tabla_vars'].get(p[1]) == None:
         print("Variable %s no declarada." %(p[1]))
         sys.exit()
@@ -455,7 +592,7 @@ def p_fin_arg(p):
     global pila_operandos
     val_esp = pila_operandos.pop()
     quads.genera('print', val_esp['nombre'], None, None)
-    
+
 def p_print_string(p):
     '''print_string : '''
     global quads
@@ -478,10 +615,10 @@ def p_instruccion(p):
                    | RIGHT actualiza_instr PARIZQ expresion PARDER fin_instr1 PUNTCOM
                    | TURN actualiza_instr PARIZQ expresion PARDER fin_instr1 PUNTCOM
                    | SIZE actualiza_instr PARIZQ expresion PARDER fin_instr1 PUNTCOM
-                   | CIRCLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
-                   | TRIANGLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
-                   | SQUARE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
-                   | NGON actualiza_instr PARIZQ expresion COMA expresion PARDER fin_instr2 transform PUNTCOM
+                   | CIRCLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform fill PUNTCOM
+                   | TRIANGLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform fill PUNTCOM
+                   | SQUARE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform fill PUNTCOM
+                   | NGON actualiza_instr PARIZQ expresion COMA expresion PARDER fin_instr2 fill transform PUNTCOM
                    | ARC actualiza_instr PARIZQ expresion COMA expresion PARDER fin_instr2 transform PUNTCOM
                    | UP actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
                    | DOWN actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
@@ -490,7 +627,8 @@ def p_instruccion(p):
                  | 
        altera : ROTATE actualiza_instr PARIZQ expresion PARDER fin_instr1
               | STRETCH actualiza_instr PARIZQ expresion PARDER fin_instr1
-              | FILL actualiza_instr PARIZQ PARDER fin_instr'''
+       fill : FILL actualiza_instr PARIZQ PARDER fin_instr
+            | '''
 
 def p_actualiza_instr(p):
     '''actualiza_instr : '''

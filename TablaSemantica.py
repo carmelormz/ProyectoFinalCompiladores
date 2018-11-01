@@ -22,7 +22,7 @@ class TablaSemantica:
             Nada
     '''
     def __init__(self):
-        self.operandos = {'int':0, 'float':1, 'None': 2}
+        self.operandos = {'int':0, 'float':1, 'None': 2, 'CTE_STR':3}
         self.operadores = {'||':0, '&&':1, '!=':2, '<':3, '>':4,
                            '==':5, '<=':6, '>=':7, '+':8, '-':9,
                            '*':10, '/':11, '=':12}

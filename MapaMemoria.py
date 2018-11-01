@@ -21,30 +21,26 @@ class MapaMemoria:
         Retorno:
             Nada
     '''
-    def __init__(self, gInt, gFloat, gCte, lInt, lFloat, lCte):
-        init_local = {'int': lInt, 'float': lFloat, 'cte': lCte}
-        self.globales = {'int': gInt, 'float': gFloat, 'cte': gCte}
-        self.locales = init_local
+    def __init__(self, gInt, gFloat, gCte, gPtr, lInt, lFloat, lCte, lPtr):
+        self.init_local = {'int': lInt, 'float': lFloat, 'cte': lCte, 'ptr': lPtr}
+        self.globales = {'int': gInt, 'float': gFloat, 'cte': gCte, 'ptr': gPtr}
+        self.locales = {'int': lInt, 'float': lFloat, 'cte': lCte, 'ptr': lPtr}
         self.estado_locales = []
 
-
-    def llamadaFun(self):
-        sel.estado_locales.append(self.locales)
-        self.locales = init_local
-
+    def defFunc(self):
+        self.estado_locales.append(self.locales.copy())
+        self.locales = self.init_local.copy()
 
     def finFunc(self):
-        self.locales =  self.estado_locales.pop()
+        self.locales = self.estado_locales.pop()
 
+    def creaVarGlobal(self, tipo, n=1):
+        self.globales[tipo] += n
+        return self.globales[tipo] - n
 
-    def creaVarGlobal(tipo):
-        self.globales[tipo] += 1
-        return self.globales[tipo] - 1
-
-
-    def creaVarLocal(tipo):
-        self.locales[tipo] += 1
-        return self.locales[tipo] - 1
+    def creaVarLocal(self, tipo, n=1):
+        self.locales[tipo] += n
+        return self.locales[tipo] - n
     
 
 
