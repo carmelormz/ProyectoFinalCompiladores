@@ -1,10 +1,21 @@
 module hello_world;
 import "hello"
+int A;
 main {
-    int mainvar8;
-    mainvar8 = 9.9 + mainvar8 * 9 * 9 / 9;
-    repeat(9 + 9){
-        mainvar8 = 9.9 + 10;
+    int B, C, D;
+    if (A + B >= D){
+        if (A <= B) {
+            A = 0;
+            B = B + D;
+        }
+        else {
+            C = A + B + 3.5;
+        }
     }
+    else
+    {
+        A = B + C;
+    }
+    D = B + A * C;
     return;
 }

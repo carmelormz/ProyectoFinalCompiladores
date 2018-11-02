@@ -1,0 +1,12 @@
+module hello_world;
+import "hello.jpg"
+int i;
+int func1(){
+    int x;
+    x = 7;
+    return x;
+}
+main {
+    i = func1();
+    return;
+}

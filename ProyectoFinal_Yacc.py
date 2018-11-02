@@ -173,16 +173,22 @@ def p_returns(p):
         quads.genera('return', None, None, tempRes['nombre'])
 
 def p_pars(p):
-    '''pars : tipo ID actualiza_id crea_var par
+    '''pars : tipo ID actualiza_id crea_var gen_dir par
             | '''
     if len(p) > 1:
         dir_func[funcion_actual]['secuencia_par'].append({'nombre': p[2], 'tipo': p[1]})
 
 def p_par(p):
-    '''par : COMA tipo ID actualiza_id crea_var par
+    '''par : COMA tipo ID actualiza_id crea_var gen_dir par
            | '''
     if len(p) > 1:
         dir_func[funcion_actual]['secuencia_par'].append({'nombre': p[3], 'tipo': p[2]})
+
+def p_gen_dir(p):
+    '''gen_dir : '''
+    global dir_func
+    dir_virtual = mapa.creaVarLocal(dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo'])
+    dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual'] = dir_virtual
 
 def p_tipo_void(p):
     '''tipo_void : '''
@@ -615,20 +621,21 @@ def p_instruccion(p):
                    | RIGHT actualiza_instr PARIZQ expresion PARDER fin_instr1 PUNTCOM
                    | TURN actualiza_instr PARIZQ expresion PARDER fin_instr1 PUNTCOM
                    | SIZE actualiza_instr PARIZQ expresion PARDER fin_instr1 PUNTCOM
-                   | CIRCLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform fill PUNTCOM
-                   | TRIANGLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform fill PUNTCOM
-                   | SQUARE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform fill PUNTCOM
-                   | NGON actualiza_instr PARIZQ expresion COMA expresion PARDER fin_instr2 fill transform PUNTCOM
-                   | ARC actualiza_instr PARIZQ expresion COMA expresion PARDER fin_instr2 transform PUNTCOM
+                   | CIRCLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
+                   | TRIANGLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
+                   | SQUARE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
+                   | NGON actualiza_instr PARIZQ expresion COMA expresion PARDER fin_instr2 transform PUNTCOM
+                   | ARC actualiza_instr PARIZQ expresion COMA expresion PARDER fin_instr2 trans PUNTCOM
                    | UP actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
                    | DOWN actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
                    | COLOR PARIZQ expresion COMA expresion COMA expresion PARDER fin_color PUNTCOM
-       transform : PUNTO altera transform
-                 | 
+       transform : fill trans
+                 |
+       fill : PUNTO FILL actualiza_instr PARIZQ PARDER fin_instr
+       trans : PUNTO altera trans
+             | 
        altera : ROTATE actualiza_instr PARIZQ expresion PARDER fin_instr1
-              | STRETCH actualiza_instr PARIZQ expresion PARDER fin_instr1
-       fill : FILL actualiza_instr PARIZQ PARDER fin_instr
-            | '''
+              | STRETCH actualiza_instr PARIZQ expresion PARDER fin_instr1'''
 
 def p_actualiza_instr(p):
     '''actualiza_instr : '''

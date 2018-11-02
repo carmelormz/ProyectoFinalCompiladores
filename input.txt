@@ -11,7 +11,7 @@ float func(){
     if (5 < 9){
     
     } else {
-        func_call();
+        func();
     }
     if (5 < 9){
 
@@ -19,17 +19,21 @@ float func(){
     return 0;
 }
 void func1(){
+    return;
 }
 
-int func2(int par1, int par2){
+int func2(float par1, float par2){
+    float x;
     return 0;
 }
 
 main {
     float mainvar8, mainvar9;
-    circle(4).rotate(45).stretch(5).rotate(5).fill();
+    circle(3).fill().rotate(56);
+    arc(3, 3).rotate(5).stretch(56);
+    circle(3);
     up();
     down();
-    forward(89 + func(67, 89));
+    forward(9 + func2(67.0 + 7 ,  8.9));
     return 0;
 }
