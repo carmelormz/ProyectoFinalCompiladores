@@ -37,8 +37,8 @@ pila_operadores = []
 pila_operandos = []
 pila_saltos = []
 quads = q.Quad()
-tempNum = 1
-mapa = mm.MapaMemoria(1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000)
+mapa = mm.MapaMemoria(1000, 2000, 3000, 4000, 0, 5000, 6000, 7000, 8000, 50)
+
 # DEFINICION DE LAS REGLAS DE LA GRAMATICA
 def p_programa(p):
     '''programa : MODULE ID creaDirFunc PUNTCOM ajustes var_func tipo_main MAIN actualiza_id crea_func bloque_func'''
@@ -72,7 +72,6 @@ def p_ajustes(p):
     else:
         quads.genera('import', None, None, p[2])
 
-
 def p_var_func(p):
     '''var_func : tipo ID actualiza_id var_o_func
                 | '''
@@ -90,7 +89,6 @@ def p_var_o_func(p):
 def p_crea_var(p):
     '''crea_var : '''
     global dir_func
-    global mapa
     if dir_func[funcion_actual]['tabla_vars'].get(id_actual) == None:
         dir_func[funcion_actual]['tabla_vars'][id_actual] = {'nombre': id_actual, 'tipo':tipo_actual, 'dim': [], 'dir_virtual': 0}
     else:
@@ -217,7 +215,6 @@ def p_push_oper(p):
 def pop_oper(operadores):
     global pila_operadores
     global pila_operandos
-    global tempNum
     global mapa
     if len(pila_operadores) == 0 : return
     pop = False
@@ -232,9 +229,9 @@ def pop_oper(operadores):
         if tipo_res != '':
             dir_virtual = 0
             if funcion_actual == 'global':
-                dir_virtual = mapa.creaVarGlobal('cte')
+                dir_virtual = mapa.creaVarGlobal('tmp')
             else:
-                dir_virtual = mapa.creaVarLocal('cte')
+                dir_virtual = mapa.creaVarLocal('tmp')
             # TODO cambiar nombre por dir_virtual
             quads.genera(oper, izq['nombre'], der['nombre'], dir_virtual)
             pila_operandos.append({'nombre': dir_virtual, 'tipo' : tipo_res})
@@ -297,12 +294,26 @@ def p_var(p):
 def p_var_int(p):
     '''var : CTE_I'''
     global pila_operandos
-    pila_operandos.append({'nombre': p[1], 'tipo' : 'int'})
+    global mapa
+    dir_virtual = 0
+    if funcion_actual == 'global':
+        dir_virtual = mapa.creaVarGlobal('cte')
+    else:
+        dir_virtual = mapa.creaVarLocal('cte')
+    # borrar p[1]
+    pila_operandos.append({'nombre': [p[1], dir_virtual], 'tipo' : 'int'})
 
 def p_var_float(p):
     '''var : CTE_F'''
     global pila_operandos
-    pila_operandos.append({'nombre': p[1], 'tipo' : 'float'})
+    global mapa
+    dir_virtual = 0
+    if funcion_actual == 'global':
+        dir_virtual = mapa.creaVarGlobal('cte')
+    else:
+        dir_virtual = mapa.creaVarLocal('cte')
+    # borrar p[1]
+    pila_operandos.append({'nombre': [p[1], dir_virtual], 'tipo' : 'float'})
 
 def p_var_error(p):
     '''var : error'''
@@ -322,8 +333,6 @@ def p_lista(p):
             else:
                 tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
                 pila_operandos.append({'nombre': id_actual, 'tipo' : tipo})
-
-    
         elif dir_func['global']['tabla_vars'].get(id_actual) != None:
             if len(dir_func['global']['tabla_vars'][id_actual]['dim']) > 0:
                 print("Variable %s is Multidimensional" %(id_actual))
@@ -331,65 +340,57 @@ def p_lista(p):
             else:
                 tipo = dir_func['global']['tabla_vars'][id_actual]['tipo']
                 pila_operandos.append({'nombre': id_actual, 'tipo' : tipo})
-
         else:
             print("Variable %s no declarada." %(id_actual))
             sys.exit()
+
+def matrix_def(funcion_actual):
+    global dir_func
+    global pila_operandos
+    global quads
+    dir_virtual = mapa.creaVarLocal('tmp')
+    d2 = pila_operandos.pop()['nombre']
+    d1 = pila_operandos.pop()['nombre']
+    quads.genera('ver', d1, 0, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0] - 1)
+    quads.genera('*', d1, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][1], dir_virtual)
+    quads.genera('ver', d2, 0, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][1] - 1)
+    dir_virtual2 = mapa.creaVarLocal('tmp')
+    quads.genera('+', d2, dir_virtual, dir_virtual2)
+    dirB = dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual']
+    ptr = mapa.creaVarLocal('ptr')
+    quads.genera('+', dirB, dir_virtual2, ptr)
+    tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
+    pila_operandos.append({'nombre': ptr, 'tipo' : tipo})
+
+def vect_def(funcion_actual):
+    global dir_func
+    global pila_operandos
+    global quads
+    dir_virtual = mapa.creaVarLocal('ptr')
+    d1 = pila_operandos.pop()['nombre']
+    quads.genera('ver', d1, 0, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0] - 1)
+    dirB = dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual']
+    quads.genera('+', dirB, d1, dir_virtual)
+    tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
+    pila_operandos.append({'nombre': dir_virtual, 'tipo' : tipo})
 
 def p_matriz(p):
     '''matriz : CORIZQ expresion CORDER
               | '''
     global dir_func
-    global pila_operandos
-    global quads
-    global tempNum
     if len(p) > 2:
         if dir_func[funcion_actual]['tabla_vars'].get(id_actual) != None:
             if len(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim']) < 2:
                 print("Variable %s is vector not matrix" %(id_actual))
                 sys.exit()
             else:
-                result = 'temp' + str(tempNum)
-                tempNum += 1
-                # pop twice
-                d2 = pila_operandos.pop()['nombre']
-                d1 = pila_operandos.pop()['nombre']
-                quads.genera('ver', d1, 0, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0] - 1)
-                quads.genera('*', d1, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][1], result)
-                quads.genera('ver', d2, 0, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][1] - 1)
-                quads.genera('+', d2, result, 'temp' + str(tempNum))
-                result = 'temp' + str(tempNum)
-                tempNum += 1
-                dirB = dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virual']
-                quads.genera('+', dirB, result, 'temp' + str(tempNum))
-                result = 'temp' + str(tempNum)
-                tempNum += 1
-
-                tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
-                pila_operandos.append({'nombre': result, 'tipo' : tipo})
+                matrix_def(funcion_actual)
         elif dir_func['global']['tabla_vars'].get(id_actual) != None:
             if len(dir_func['global']['tabla_vars'][id_actual]['dim']) < 2:
                 print("Variable %s is vector not matrix" %(id_actual))
                 sys.exit()
             else:
-                result = 'temp' + str(tempNum)
-                tempNum += 1
-                # pop twice
-                d2 = pila_operandos.pop()['nombre']
-                d1 = pila_operandos.pop()['nombre']
-                quads.genera('ver', d1, 0, dir_func['global']['tabla_vars'][id_actual]['dim'][0] - 1)
-                quads.genera('*', d1, dir_func['global']['tabla_vars'][id_actual]['dim'][1], result)
-                quads.genera('ver', d2, 0, dir_func['global']['tabla_vars'][id_actual]['dim'][1] - 1)
-                quads.genera('+', d2, result, 'temp' + str(tempNum))
-                result = 'temp' + str(tempNum)
-                tempNum += 1
-                dirB = dir_func['global']['tabla_vars'][id_actual]['dir_virtual']
-                quads.genera('+', dirB, result, 'temp' + str(tempNum))
-                result = 'temp' + str(tempNum)
-                tempNum += 1
-
-                tipo = dir_func['global']['tabla_vars'][id_actual]['tipo']
-                pila_operandos.append({'nombre': result, 'tipo' : tipo})
+                matrix_def('global')
         else:
             print("Variable %s no declarada." %(id_actual))
             sys.exit()
@@ -399,35 +400,13 @@ def p_matriz(p):
                 print("Variable %s is matrix not vector" %(id_actual))
                 sys.exit()
             else:
-                # pop once
-                result = 'temp' + str(tempNum)
-                tempNum += 1
-    
-                d1 = pila_operandos.pop()['nombre']
-                quads.genera('ver', d1, 0, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0] - 1)
-                dirB = dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual']
-                quads.genera('+', dirB, d1, result)
-
-                tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
-                pila_operandos.append({'nombre': result, 'tipo' : tipo})
-                print("Vector %s" %(id_actual))
+                vect_def(funcion_actual)
         elif dir_func['global']['tabla_vars'].get(id_actual) != None:
             if len(dir_func['global']['tabla_vars'][id_actual]['dim']) > 1:
                 print("Variable %s is matrix not vector" %(id_actual))
                 sys.exit()
             else:
-                # pop once
-                result = 'temp' + str(tempNum)
-                tempNum += 1
-    
-                d1 = pila_operandos.pop()['nombre']
-                quads.genera('ver', d1, 0, dir_func['global']['tabla_vars'][id_actual]['dim'][0] - 1)
-                dirB = dir_func['global']['tabla_vars'][id_actual]['dir_virtual']
-                quads.genera('+', dirB, d1, result)
-
-                tipo = dir_func['global']['tabla_vars'][id_actual]['tipo']
-                pila_operandos.append({'nombre': result, 'tipo' : tipo})
-                print("Vector %s" %(id_actual))
+                vect_def('global')
         else:
             print("Variable %s no declarada." %(id_actual))
             sys.exit()
@@ -485,9 +464,10 @@ def p_gen_gosub(p):
     global pila_operandos
     quads.genera('gosub', None, func_call, dir_func[func_call]['dir_inicio'])
     if dir_func[func_call]['tipo'] != 'void':
-        retorno = mapa.creaVarLocal('cte')
+        retorno = mapa.creaVarLocal('tmp')
         quads.genera('=', func_call, None, retorno)
         pila_operandos.append({'nombre': retorno, 'tipo' : dir_func[func_call]['tipo']})
+
 def p_args(p):
     '''args : expresion asig_par arg
             |
@@ -525,7 +505,7 @@ def p_asignacion(p):
         print("Variable %s no declarada." %(p[1]))
         sys.exit()
     if tempRes['tipo'] == 'int' or tempRes['tipo'] == 'float':
-        quads.genera('=', tempRes['nombre'], None, p[1])
+        quads.genera('=', tempRes['nombre'], None, tempAsig['nombre'])
     else:
         print('Type Mismatch')
         sys.exit()
@@ -597,12 +577,12 @@ def p_fin_arg(p):
     global quads
     global pila_operandos
     val_esp = pila_operandos.pop()
-    quads.genera('print', val_esp['nombre'], None, None)
+    quads.genera('print', None, None, val_esp['nombre'])
 
 def p_print_string(p):
     '''print_string : '''
     global quads
-    quads.genera('print', p[-1], None, None)
+    quads.genera('print', None, None, p[-1])
 
 def p_tipo(p):
     '''tipo : INT actualiza_tipo
@@ -654,7 +634,7 @@ def p_fin_instr1(p):
     global quads
     global pila_operandos
     val1 = pila_operandos.pop()
-    quads.genera(instr_actual, val1['nombre'], None, None)
+    quads.genera(instr_actual, None, None, val1['nombre'])
 
 def p_fin_instr2(p):
     '''fin_instr2 : '''
@@ -663,7 +643,7 @@ def p_fin_instr2(p):
     global pila_operandos
     val2 = pila_operandos.pop()
     val1 = pila_operandos.pop()
-    quads.genera(instr_actual, val1['nombre'], val2['nombre'], None)
+    quads.genera(instr_actual, None, val1['nombre'], val2['nombre'])
 
 def p_fin_color(p):
     '''fin_color : '''
