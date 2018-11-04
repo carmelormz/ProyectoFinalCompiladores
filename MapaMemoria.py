@@ -21,10 +21,26 @@ class MapaMemoria:
         Retorno:
             Nada
     '''
-    def __init__(self, gInt, gFloat, gCte, gPtr, lInt, lFloat, lCte, lPtr):
-        self.init_local = {'int': lInt, 'float': lFloat, 'cte': lCte, 'ptr': lPtr}
-        self.globales = {'int': gInt, 'float': gFloat, 'cte': gCte, 'ptr': gPtr}
-        self.locales = {'int': lInt, 'float': lFloat, 'cte': lCte, 'ptr': lPtr}
+    def __init__(self, dirBase, entero, flotante, tmp, ptr, cte):
+        gI = dirBase
+        gF = gI + entero
+        gCI = gF + flotante
+        gCF = gCI + cte
+        lI = gCF + cte
+        lF = lI + entero
+        lTI = lF + flotante
+        lTF = lTI + entero
+        lPI = lTF + flotante
+        lPF = lPI + ptr
+        # Tamaño = 8000 + dirBase
+        self.init_local = {'int': lI, 'float': lF,
+                           'tmpi': lTI, 'tmpf': lTF,
+                           'ptri': lPI, 'ptrf': lPF,}
+        self.globales = {'int': gI, 'float': gF,
+                         'ctei': gCI, 'ctef': gCF}
+        self.locales = {'int': lI, 'float': lF,
+                        'tmpi': lTI, 'tmpf': lTF,
+                        'ptri': lPI, 'ptrf': lPF,}
         self.estado_locales = []
 
     def defFunc(self):

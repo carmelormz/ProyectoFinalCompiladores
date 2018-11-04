@@ -38,7 +38,9 @@ class Quad:
                                   '-' : 39, '*' : 40, '/' : 41,
                                   '=' : 42}
     def genera(self, operador, op_izq, op_der, res):
-        self.quads.append([operador, op_izq, op_der, res])
+        # operacion = self.codigos_operacion[operador]
+        operacion = operador
+        self.quads.append([operacion, op_izq, op_der, res])
         self.contador += 1
     def rellena(self, val):
         self.quads[val - 1][3] = self.contador
