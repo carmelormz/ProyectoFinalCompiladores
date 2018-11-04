@@ -149,7 +149,10 @@ def p_end_sub(p):
     global quads
     global mapa
     mapa.finFunc()
-    quads.genera('endproc', None, None, None)
+    if funcion_actual == 'main':
+        quads.genera('end', None, None, None)
+    else:
+        quads.genera('endproc', None, None, None)
 
 def p_vars_estatutos(p):
     ''' vars_estatutos : vars estatutos
@@ -585,7 +588,7 @@ def p_fin_exp_repeat(p):
     global pila_saltos
     val_esp = pila_operandos.pop()
     if val_esp['tipo'] == 'int':
-        quads.genera('gotof',val_esp['nombre'], None, None)
+        quads.genera('gotof', val_esp['nombre'], None, None)
         pila_saltos.append(quads.contador - 1)
     else:
         print("Type Mismatch") 
