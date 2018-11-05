@@ -4,7 +4,7 @@
 import ply.yacc as yacc
 import ProyectoFinal_Lex as scanner
 import TablaSemantica as tb
-import MapaMemoria as mm
+import GeneraDireccion as gd
 import Quad as q
 import sys
 import json
@@ -37,8 +37,8 @@ pila_saltos = []
 quads = q.Quad()
 var_dim = []
 # dirBase, entero, flotante, tmp, ptr, cte
-mapa = mm.MapaMemoria(5000, 1000, 1000, 1000, 500, 500)
-
+mapa = gd.GeneradorDireccion(5000, 1000, 1000, 1000, 500, 500)
+tabla_constantes = {}
 # DEFINICION DE LAS REGLAS DE LA GRAMATICA
 def p_programa(p):
     '''programa : MODULE ID creaDirFunc PUNTCOM ajustes var_func tipo_main MAIN actualiza_id crea_func bloque_func'''
@@ -62,13 +62,25 @@ def p_creaDirFunc(p):
     id_programa = p[-1]
     dir_func['global'] = {'nombre': id_programa, 'tipo':'void', 'secuencia_par': [],'tabla_vars': {}, 'dir_inicio': 0, 'tamano': 0}
 
+def dir_constant(val, tipo):
+    global tabla_constantes
+    if tabla_constantes.get(val) == None:
+        dir_virtual = mapa.creaVarGlobal(tipo)
+        tabla_constantes[val] = dir_virtual
+    else:
+        dir_virtual = tabla_constantes[val]
+    return dir_virtual
+
 def p_ajustes(p):
     '''ajustes : CANVAS BRAIZQ WIDTH CTE_I PUNTCOM HEIGHT CTE_I PUNTCOM BACKGROUND CTE_F COMA CTE_F COMA CTE_F PUNTCOM BRADER
                | IMPORT CTE_STR'''
     global quads
     if len(p) > 4:
-        quads.genera('canvas', None, p[4], p[7])
-        quads.genera('background', p[10], p[12], p[14])
+        quads.genera('canvas', None, dir_constant(p[4], 'ctei'),
+                                     dir_constant(p[7], 'ctei'))
+        quads.genera('background', dir_constant(p[10], 'ctef'),
+                                   dir_constant(p[12], 'ctef'),
+                                   dir_constant(p[14], 'ctef'))
     else:
         quads.genera('import', None, None, p[2])
 
@@ -177,19 +189,21 @@ def p_returns(p):
     global quads
     if len(p) > 2:
         tempRes = pila_operandos.pop()
-        quads.genera('return', None, None, tempRes['nombre'])
+        quads.genera('return', None, None, tempRes['dir_virtual'])
 
 def p_pars(p):
     '''pars : tipo ID actualiza_id crea_var gen_dir par
             | '''
     if len(p) > 1:
-        dir_func[funcion_actual]['secuencia_par'].append({'nombre': p[2], 'tipo': p[1]})
+        dir_virtual = dir_func[funcion_actual]['tabla_vars'][p[2]]['dir_virtual']
+        dir_func[funcion_actual]['secuencia_par'].append({'nombre': p[2], 'tipo': p[1], 'dir_virtual' : dir_virtual})
 
 def p_par(p):
     '''par : COMA tipo ID actualiza_id crea_var gen_dir par
            | '''
     if len(p) > 1:
-        dir_func[funcion_actual]['secuencia_par'].append({'nombre': p[3], 'tipo': p[2]})
+        dir_virtual = dir_func[funcion_actual]['tabla_vars'][p[3]]['dir_virtual']
+        dir_func[funcion_actual]['secuencia_par'].append({'nombre': p[3], 'tipo': p[2], 'dir_virtual' : dir_virtual})
 
 def p_gen_dir(p):
     '''gen_dir : '''
@@ -241,7 +255,7 @@ def pop_oper(operadores):
             else:
                 dir_virtual = mapa.creaVarLocal('tmpf')
             # TODO cambiar nombre por dir_virtual
-            quads.genera(oper, izq['nombre'], der['nombre'], dir_virtual)
+            quads.genera(oper, izq['dir_virtual'], der['dir_virtual'], dir_virtual)
             pila_operandos.append({'nombre': 'temp',
                                    'tipo' : tipo_res,
                                    'dir_virtual' : dir_virtual})
@@ -305,11 +319,9 @@ def p_var_int(p):
     '''var : CTE_I'''
     global pila_operandos
     global mapa
-    dir_virtual = 0
-    dir_virtual = mapa.creaVarGlobal('ctei')
     pila_operandos.append({'nombre': p[1],
                            'tipo' : 'int',
-                           'dir_virtual' : mapa.creaVarGlobal('ctei')})
+                           'dir_virtual' : dir_constant(p[1],'ctei')})
 
 def p_var_float(p):
     '''var : CTE_F'''
@@ -317,7 +329,7 @@ def p_var_float(p):
     global mapa
     pila_operandos.append({'nombre': p[1],
                            'tipo' : 'float',
-                           'dir_virtual' : mapa.creaVarGlobal('ctef')})
+                           'dir_virtual' : dir_constant(p[1],'ctef')})
 
 def p_var_error(p):
     '''var : error'''
@@ -375,8 +387,8 @@ def matrix_def(funcion_actual):
     if d1['tipo'] != 'int' or d2['tipo'] != 'int':
         print("Indices must be integers")
         sys.exit()
-    d2 = d2['nombre']
-    d1 = d1['nombre']
+    d2 = d2['dir_virtual']
+    d1 = d1['dir_virtual']
     tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
     if tipo == 'int':
         dir_virtual = mapa.creaVarLocal('tmpi')
@@ -386,9 +398,13 @@ def matrix_def(funcion_actual):
         dir_virtual = mapa.creaVarLocal('tmpf')
         dir_virtual2 = mapa.creaVarLocal('tmpf')
         ptr = mapa.creaVarLocal('ptrf')
-    quads.genera('ver', d1, 0, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0] - 1)
-    quads.genera('*', d1, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0], dir_virtual)
-    quads.genera('ver', d2, 0, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][1] - 1)
+    li = dir_constant(0,'ctei')
+    ls1 = dir_constant(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0] - 1,'ctei')
+    ls2 = dir_constant(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][1] - 1,'ctei')
+    tam = dir_constant(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0], 'ctei')
+    quads.genera('ver', d1, li, ls1)
+    quads.genera('*', d1, tam, dir_virtual)
+    quads.genera('ver', d2, li, ls2)
     quads.genera('+', d2, dir_virtual, dir_virtual2)
     dirB = dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual']
     quads.genera('+', dirB, dir_virtual2, ptr)
@@ -402,18 +418,20 @@ def vect_def(funcion_actual):
     if d1['tipo'] != 'int':
         print("Indices must be integers")
         sys.exit()
-    d1 = d1['nombre']
+    d1 = d1['dir_virtual']
     tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
     if tipo == 'int':
         dir_virtual = mapa.creaVarLocal('ptri')
     else:
         dir_virtual = mapa.creaVarLocal('ptrf')
-    quads.genera('ver', d1, 0, dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0] - 1)
+    li = dir_constant(0,'ctei')
+    ls = dir_constant(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0] - 1,'ctei')
+    quads.genera('ver', d1, li, ls)
     dirB = dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual']
     quads.genera('+', dirB, d1, dir_virtual)
     pila_operandos.append({'nombre': 'ptr',
                            'tipo' : tipo,
-                           'dir_virtual' : dir_virtual})
+                           'dir_virtual' : '*' + str(dir_virtual)})
 
 def p_matriz(p):
     '''matriz : CORIZQ expresion CORDER pop_dim
@@ -493,7 +511,7 @@ def p_gen_era(p):
     global num_args
     num_args = 0
     if dir_func.get(func_call) != None:
-        quads.genera('era', None, func_call,  dir_func[func_call]['tamano'])
+        quads.genera('era', dir_func[func_call]['dir_inicio'], None,  dir_func[func_call]['tamano'])
     else:
         print("Function", func_call," not declared")
         sys.exit()
@@ -510,7 +528,7 @@ def p_gen_gosub(p):
             retorno = mapa.creaVarLocal('tmpi')
         else:
             retorno = mapa.creaVarLocal('tmpf')
-        quads.genera('=', func_call, None, retorno)
+        quads.genera('=', None, None, retorno)
         pila_operandos.append({'nombre': retorno,
                                'tipo' : dir_func[func_call]['tipo'],
                                'dir_virtual' : retorno})
@@ -532,7 +550,7 @@ def p_asig_par(p):
     tam = len(pars)
     if num_args < len(pars):
         if pars[tam - num_args - 1]['tipo'] == arg['tipo']:
-            quads.genera('param', arg['nombre'], None, pars[tam - num_args - 1]['nombre'])
+            quads.genera('param', arg['dir_virtual'], None, pars[tam - num_args - 1]['dir_virtual'])
         else:
             print("Type Mismatch") 
             sys.exit()
@@ -552,7 +570,7 @@ def p_asignacion(p):
         print("Variable %s no declarada." %(p[1]))
         sys.exit()
     if tempRes['tipo'] == 'int' or tempRes['tipo'] == 'float':
-        quads.genera('=', tempRes['nombre'], None, tempAsig['nombre'])
+        quads.genera('=', tempRes['dir_virtual'], None, tempAsig['dir_virtual'])
     else:
         print('Type Mismatch')
         sys.exit()
@@ -588,7 +606,7 @@ def p_fin_exp_repeat(p):
     global pila_saltos
     val_esp = pila_operandos.pop()
     if val_esp['tipo'] == 'int':
-        quads.genera('gotof', val_esp['nombre'], None, None)
+        quads.genera('gotof', val_esp['dir_virtual'], None, None)
         pila_saltos.append(quads.contador - 1)
     else:
         print("Type Mismatch") 
@@ -624,7 +642,7 @@ def p_fin_arg(p):
     global quads
     global pila_operandos
     val_esp = pila_operandos.pop()
-    quads.genera('print', None, None, val_esp['nombre'])
+    quads.genera('print', None, None, val_esp['dir_virtual'])
 
 def p_print_string(p):
     '''print_string : '''
@@ -681,7 +699,7 @@ def p_fin_instr1(p):
     global quads
     global pila_operandos
     val1 = pila_operandos.pop()
-    quads.genera(instr_actual, None, None, val1['nombre'])
+    quads.genera(instr_actual, None, None, val1['dir_virtual'])
 
 def p_fin_instr2(p):
     '''fin_instr2 : '''
@@ -690,7 +708,7 @@ def p_fin_instr2(p):
     global pila_operandos
     val2 = pila_operandos.pop()
     val1 = pila_operandos.pop()
-    quads.genera(instr_actual, None, val1['nombre'], val2['nombre'])
+    quads.genera(instr_actual, None, val1['dir_virtual'], val2['dir_virtual'])
 
 def p_fin_color(p):
     '''fin_color : '''
@@ -699,7 +717,7 @@ def p_fin_color(p):
     val3 = pila_operandos.pop()
     val2 = pila_operandos.pop()
     val1 = pila_operandos.pop()
-    quads.genera('colr', val1['nombre'], val2['nombre'], val3['nombre'])
+    quads.genera('colr', val1['dir_virtual'], val2['dir_virtual'], val3['dir_virtual'])
 
 def p_error(p):
     print("Syntax error at token " + str(p.type) + " lineno " + str(p.lineno))
@@ -715,6 +733,7 @@ def main():
         file.close()
         parser.parse(data)
     print(json.dumps(dir_func, indent=4))
+    print(tabla_constantes)
     j = 1
     for i in quads.quads:
         print(j, i)
