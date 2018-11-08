@@ -72,8 +72,11 @@ def main():
             stack_pointer += 1
         elif quads[stack_pointer][0] == 11:
             # gotof
-            if quads[stack_pointer][1] != 0:
+            val = mem.find(quads[stack_pointer][1])
+            if val == 0:
                 stack_pointer = quads[stack_pointer][3] - 1
+            else:
+                stack_pointer += 1
         elif quads[stack_pointer][0] == 12:
             # print
             opdo = quads[stack_pointer][3]
