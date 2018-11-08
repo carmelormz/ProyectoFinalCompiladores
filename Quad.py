@@ -25,7 +25,7 @@ class Quad:
         self.codigos_operacion = {'canvas' : 0, 'background' : 1, 'import' : 2,
                                   'endproc' : 3, 'return' : 4, 'ver' : 5,
                                   'goto' : 6, 'era' : 7, 'gosub' : 8,
-                                  'param' : 9, 'goto' : 10, 'gotof' : 11,
+                                  'param' : 9, 'end' : 10, 'gotof' : 11,
                                   'print' : 12, 'colr' : 13, 'forward' : 14,
                                   'backward' : 15, 'left' : 16, 'right' : 17,
                                   'turn' : 18, 'size' : 19, 'circle' : 20,
@@ -36,7 +36,7 @@ class Quad:
                                   '<' : 33, '>' : 34, '==' : 35,
                                   '<=' : 36, '>=' : 37, '+' : 38,
                                   '-' : 39, '*' : 40, '/' : 41,
-                                  '=' : 42, 'end' : 43}
+                                  '=' : 42}
     def genera(self, operador, op_izq, op_der, res):
         operacion = self.codigos_operacion[operador]
         # operacion = operador

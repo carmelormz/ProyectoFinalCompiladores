@@ -32,6 +32,7 @@ class GeneradorDireccion:
         lTF = lTI + entero
         lPI = lTF + flotante
         lPF = lPI + ptr
+        # stack overflow tipo
         # Tamaño = 8000 + dirBase
         self.init_local = {'int': lI, 'float': lF,
                            'tmpi': lTI, 'tmpf': lTF,

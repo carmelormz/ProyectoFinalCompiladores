@@ -724,20 +724,12 @@ def p_error(p):
     sys.exit()
 
 # FUNCION PRINCIPAL PARA EVELUAR UN ARCHIVO DE TEXTO - python3 ProyectoFinal_Yacc.py archivo
-def main():
+def parse(file):
     lexer = scanner.lexer
     tokens = scanner.tokens
     parser = yacc.yacc()
-    with open(str(sys.argv[1]), 'r') as file:
-        data=file.read()
-        file.close()
-        parser.parse(data)
-    print(json.dumps(dir_func, indent=4))
-    print(tabla_constantes)
-    j = 1
-    for i in quads.quads:
-        print(j, i)
-        j += 1
-
-if __name__ == '__main__':
-    main()
+    file = open(file, 'r')
+    data=file.read()
+    file.close()
+    parser.parse(data)
+    return [dir_func, tabla_constantes, quads.quads]
