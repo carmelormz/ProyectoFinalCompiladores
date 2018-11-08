@@ -1,5 +1,6 @@
 # Proyecto Final - Compiladores
 # Autores: Carmelo Ramirez (A01175987) y Juan Pablo Galaz (A01251406)
+import sys
 '''
     Clase GeneradorDireccion
         Implementa el mapa de memoria que guarde el estad de direcciones virtuales.
@@ -7,7 +8,7 @@
         
     Metodos:
         __init__()
-        llamadaFun()
+        defFunc()
         finFunc()
         creaVarGlobal()
         creaVarLocal()
@@ -32,8 +33,12 @@ class GeneradorDireccion:
         lTF = lTI + entero
         lPI = lTF + flotante
         lPF = lPI + ptr
-        # stack overflow tipo
-        # Tamaño = 8000 + dirBase
+        self.vals = [dirBase, entero, flotante, tmp, ptr, cte]
+        self.limite_locales = {'int': lF, 'float': lTI,
+                               'tmpi': lTF, 'tmpf': lPI,
+                               'ptri': lPF, 'ptrf': lPF}
+        self.limite_globales = {'int': gF, 'float': gCI,
+                                'ctei': gCF, 'ctef': lI}
         self.init_local = {'int': lI, 'float': lF,
                            'tmpi': lTI, 'tmpf': lTF,
                            'ptri': lPI, 'ptrf': lPF,}
@@ -41,7 +46,7 @@ class GeneradorDireccion:
                          'ctei': gCI, 'ctef': gCF}
         self.locales = {'int': lI, 'float': lF,
                         'tmpi': lTI, 'tmpf': lTF,
-                        'ptri': lPI, 'ptrf': lPF,}
+                        'ptri': lPI, 'ptrf': lPF}
         self.estado_locales = []
 
     def defFunc(self):
@@ -52,12 +57,20 @@ class GeneradorDireccion:
         self.locales = self.estado_locales.pop()
 
     def creaVarGlobal(self, tipo, n=1):
-        self.globales[tipo] += n
-        return self.globales[tipo] - n
+        if self.globales[tipo] + n <= self.limite_globales[tipo]:
+            self.globales[tipo] += n
+            return self.globales[tipo] - n
+        else:
+            print('Too many variables of type %s declared' %(tipo))
+            sys.exit()
 
     def creaVarLocal(self, tipo, n=1):
-        self.locales[tipo] += n
-        return self.locales[tipo] - n
+        if self.locales[tipo] + n <= self.limite_locales[tipo]:
+            self.locales[tipo] += n
+            return self.locales[tipo] - n
+        else:
+            print('Too many variables of type %s declared' %(tipo))
+            sys.exit()
     
 
 

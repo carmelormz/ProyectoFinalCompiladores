@@ -1,156 +1,252 @@
 # Proyecto Final - Compiladores
 # Autores: Carmelo Ramirez (A01175987) y Juan Pablo Galaz (A01251406)
 import ProyectoFinal_Yacc as parser
+import MapaMemoria
 import sys
 dir_func = {}
-tabla_constantes = {}
 quads = []
 stack_pointer = 0
-'''
-'int': lI, 'float': lF,
-                           'tmpi': lTI, 'tmpf': lTF,
-                           'ptri': lPI, 'ptrf': lPF,}
-        self.globales = {'int': gI, 'float': gF,
-                         'ctei': gCI, 'ctef': gCF}
-    MapaDeMemoria {''}
-'''
+mem = None
+func_reg = 0
+
+def load_constantes(tabla_constantes):
+    global mem
+    for val in tabla_constantes:
+        mem.insert(tabla_constantes[val], val)
+
 def main():
     global dir_func
-    global tabla_constantes
     global quads
     global stack_pointer
-    dir_func, tabla_constantes, quads = parser.parse(str(sys.argv[1]))
+    global mem
+    global func_reg
+    dir_func, tabla_constantes, quads, val = parser.parse(str(sys.argv[1]))
+    mem = MapaMemoria.MapaMemoria(val[0], val[1], val[2], val[3], val[4], val[5])
+    load_constantes(tabla_constantes)
+    i = 1
+    for q in quads:
+        print(i, q)
+        i += 1
+    print('---------------------------------')
     while quads[stack_pointer][0] != 10:
+        print(quads[stack_pointer])
         if quads[stack_pointer][0] == 0:
             # canvas crear una imagen
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 1:
             # background color de imagen
-            print(quads[stack_pointer])
+            r = mem.find(quads[stack_pointer][1])
+            g = mem.find(quads[stack_pointer][2])
+            b = mem.find(quads[stack_pointer][3])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 2:
             # import abrir una imagen
-            print(quads[stack_pointer])
+            image = quads[stack_pointer][3][1:-1]
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 3:
             # endproc
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 4:
             # return
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 5:
             # ver
-            print(quads[stack_pointer])
+            index = mem.find(quads[stack_pointer][1])
+            li = mem.find(quads[stack_pointer][2])
+            ls = mem.find(quads[stack_pointer][3])
+            if index < li or index > ls:
+                print("Out of index")
+                sys.exit()
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 6:
             # goto 
-            print(quads[stack_pointer])
+            stack_pointer = quads[stack_pointer][3] - 1
         elif quads[stack_pointer][0] == 7:
             # era
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 8:
             # gosub
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 9:
             # param
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 11:
             # gotof
-            print(quads[stack_pointer])
+            if quads[stack_pointer][1] != 0:
+                stack_pointer = quads[stack_pointer][3] - 1
         elif quads[stack_pointer][0] == 12:
             # print
-            print(quads[stack_pointer])
+            opdo = quads[stack_pointer][3]
+            if type(opdo) is str:
+                if opdo[0] == '~':
+                    print(mem.find(opdo))
+                else:
+                    print(opdo)
+            else:
+                print(mem.find(opdo))
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 13:
             # color cambiar color
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 14:
             # forward
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 15:
             # backward
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 16:
             # left
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 17:
             # right
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 18:
             # turn
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 19:
             # size
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 20:
             # circle
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 21:
             # triangle
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 22:
             # square
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 23:
             # ngon
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 24:
             # arc
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 25:
             # up
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 26:
             # down
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 27:
             # rotate
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 28:
             # stretch
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 29:
             # fill
-            print(quads[stack_pointer])
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 30:
             # ||
-            print(quads[stack_pointer])
+            op1 = mem.find(quads[stack_pointer][1])
+            op2 = mem.find(quads[stack_pointer][2])
+            if op1 != 0 or op2 != 0:
+                mem.insert(quads[stack_pointer][3], 1)
+            else:
+                mem.insert(quads[stack_pointer][3], 0)
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 31:
             # &&
-            print(quads[stack_pointer])
+            op1 = mem.find(quads[stack_pointer][1])
+            op2 = mem.find(quads[stack_pointer][2])
+            if op1 != 0 and op2 != 0:
+                mem.insert(quads[stack_pointer][3], 1)
+            else:
+                mem.insert(quads[stack_pointer][3], 0)
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 32:
             # !=
-            print(quads[stack_pointer])
+            op1 = mem.find(quads[stack_pointer][1])
+            op2 = mem.find(quads[stack_pointer][2])
+            if op1 != op2:
+                mem.insert(quads[stack_pointer][3], 1)
+            else:
+                mem.insert(quads[stack_pointer][3], 0)
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 33:
             # <
-            print(quads[stack_pointer])
+            op1 = mem.find(quads[stack_pointer][1])
+            op2 = mem.find(quads[stack_pointer][2])
+            if op1 < op2:
+                mem.insert(quads[stack_pointer][3], 1)
+            else:
+                mem.insert(quads[stack_pointer][3], 0)
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 34:
             # > 
-            print(quads[stack_pointer])
+            op1 = mem.find(quads[stack_pointer][1])
+            op2 = mem.find(quads[stack_pointer][2])
+            if op1 > op2:
+                mem.insert(quads[stack_pointer][3], 1)
+            else:
+                mem.insert(quads[stack_pointer][3], 0)
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 35:
             # ==
-            print(quads[stack_pointer])
+            op1 = mem.find(quads[stack_pointer][1])
+            op2 = mem.find(quads[stack_pointer][2])
+            if op1 == op2:
+                mem.insert(quads[stack_pointer][3], 1)
+            else:
+                mem.insert(quads[stack_pointer][3], 0)
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 36:
             # <=
-            print(quads[stack_pointer])
+            op1 = mem.find(quads[stack_pointer][1])
+            op2 = mem.find(quads[stack_pointer][2])
+            if op1 <= op2:
+                mem.insert(quads[stack_pointer][3], 1)
+            else:
+                mem.insert(quads[stack_pointer][3], 0)
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 37:
-            # >= 
-            print(quads[stack_pointer])
+            # >=
+            op1 = mem.find(quads[stack_pointer][1])
+            op2 = mem.find(quads[stack_pointer][2])
+            if op1 >= op2:
+                mem.insert(quads[stack_pointer][3], 1)
+            else:
+                mem.insert(quads[stack_pointer][3], 0)
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 38:
             # +
-            print(quads[stack_pointer])
+            op1 = mem.find(quads[stack_pointer][1])
+            op2 = mem.find(quads[stack_pointer][2])
+            mem.insert(quads[stack_pointer][3], op1 + op2)
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 39:
             # -
-            print(quads[stack_pointer])
+            op1 = mem.find(quads[stack_pointer][1])
+            op2 = mem.find(quads[stack_pointer][2])
+            mem.insert(quads[stack_pointer][3], op1 - op2)
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 40:
             # *
-            print(quads[stack_pointer])
+            op1 = mem.find(quads[stack_pointer][1])
+            op2 = mem.find(quads[stack_pointer][2])
+            mem.insert(quads[stack_pointer][3], op1 * op2)
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 41:
             # /
-            print(quads[stack_pointer])
+            op1 = mem.find(quads[stack_pointer][1])
+            op2 = mem.find(quads[stack_pointer][2])
+            if op2 == 0:
+                print('Division by zero')
+                sys.exit()
+            mem.insert(quads[stack_pointer][3], op1/op2)
+            stack_pointer += 1
         elif quads[stack_pointer][0] == 42:
             # =
-            print(quads[stack_pointer])
+            if quads[stack_pointer][1] == None:
+                mem.insert(quads[stack_pointer][3], func_reg)
+            else:
+                op1 = mem.find(quads[stack_pointer][1])
+                mem.insert(quads[stack_pointer][3], op1)
+            stack_pointer += 1
         else:
             print('Error')
             sys.exit()
-        stack_pointer += 1
+    print(mem.mapa_memoria)
 
 if __name__ == '__main__':
     main()

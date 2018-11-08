@@ -8,11 +8,6 @@ import GeneraDireccion as gd
 import Quad as q
 import sys
 import json
-import sys
-
-# TODO
-# Cambiar Nombres por Direcciones Virtuales
-# Integrar Mapa de Memoria
 
 #------------- SINTAXIS DEL LENGUAJE ---------
 
@@ -48,16 +43,15 @@ def p_tipo_main(p):
     global tipo_actual
     global quads
     global pila_operandos
+    global pila_saltos
     tipo_actual = 'void'
-    quads.rellena(1)
+    quads.rellena(pila_saltos.pop())
 
 def p_creaDirFunc(p):
     '''creaDirFunc : '''
     global dir_func
     global id_programa
     global funcion_actual
-    global quads
-    quads.genera('goto',None, None, None)
     funcion_actual = 'global'
     id_programa = p[-1]
     dir_func['global'] = {'nombre': id_programa, 'tipo':'void', 'secuencia_par': [],'tabla_vars': {}, 'dir_inicio': 0, 'tamano': 0}
@@ -75,6 +69,7 @@ def p_ajustes(p):
     '''ajustes : CANVAS BRAIZQ WIDTH CTE_I PUNTCOM HEIGHT CTE_I PUNTCOM BACKGROUND CTE_F COMA CTE_F COMA CTE_F PUNTCOM BRADER
                | IMPORT CTE_STR'''
     global quads
+    global pila_saltos
     if len(p) > 4:
         quads.genera('canvas', None, dir_constant(p[4], 'ctei'),
                                      dir_constant(p[7], 'ctei'))
@@ -83,6 +78,8 @@ def p_ajustes(p):
                                    dir_constant(p[14], 'ctef'))
     else:
         quads.genera('import', None, None, p[2])
+    pila_saltos.append(quads.contador)
+    quads.genera('goto',None, None, None)
 
 def p_var_func(p):
     '''var_func : tipo ID actualiza_id var_o_func
@@ -310,7 +307,18 @@ def p_expresion(p):
 def p_factor(p):
     '''factor : PARIZQ push_paren e PARDER pop_paren
               | var
-              | RESTA var'''
+              | RESTA neg_push var neg_pop'''
+negativo = False
+
+def p_neg_push(p):
+    '''neg_push : '''
+    global negativo
+    negativo = True
+
+def p_neg_pop(p):
+    '''neg_pop : '''
+    global negativo
+    negativo = False
 
 def p_var(p):
     '''var : ID actualiza_id var_func_call'''
@@ -319,6 +327,9 @@ def p_var_int(p):
     '''var : CTE_I'''
     global pila_operandos
     global mapa
+    global negativo
+    if negativo:
+        p[1] = -p[1]
     pila_operandos.append({'nombre': p[1],
                            'tipo' : 'int',
                            'dir_virtual' : dir_constant(p[1],'ctei')})
@@ -327,6 +338,9 @@ def p_var_float(p):
     '''var : CTE_F'''
     global pila_operandos
     global mapa
+    global negativo
+    if negativo:
+        p[1] = -p[1]
     pila_operandos.append({'nombre': p[1],
                            'tipo' : 'float',
                            'dir_virtual' : dir_constant(p[1],'ctef')})
@@ -407,8 +421,8 @@ def matrix_def(funcion_actual):
     quads.genera('ver', d2, li, ls2)
     quads.genera('+', d2, dir_virtual, dir_virtual2)
     dirB = dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual']
-    quads.genera('+', dirB, dir_virtual2, ptr)
-    pila_operandos.append({'nombre': 'ptr', 'tipo' : tipo, 'dir_virtual': '*' + str(ptr)})
+    quads.genera('+', dir_constant(dirB, 'ctei'), dir_virtual2, ptr)
+    pila_operandos.append({'nombre': 'ptr', 'tipo' : tipo, 'dir_virtual': '~' + str(ptr)})
 
 def vect_def(funcion_actual):
     global dir_func
@@ -428,10 +442,10 @@ def vect_def(funcion_actual):
     ls = dir_constant(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0] - 1,'ctei')
     quads.genera('ver', d1, li, ls)
     dirB = dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual']
-    quads.genera('+', dirB, d1, dir_virtual)
+    quads.genera('+', dir_constant(dirB, 'ctei'), d1, dir_virtual)
     pila_operandos.append({'nombre': 'ptr',
                            'tipo' : tipo,
-                           'dir_virtual' : '*' + str(dir_virtual)})
+                           'dir_virtual' : '~' + str(dir_virtual)})
 
 def p_matriz(p):
     '''matriz : CORIZQ expresion CORDER pop_dim
@@ -732,4 +746,4 @@ def parse(file):
     data=file.read()
     file.close()
     parser.parse(data)
-    return [dir_func, tabla_constantes, quads.quads]
+    return [dir_func, tabla_constantes, quads.quads, mapa.vals]
