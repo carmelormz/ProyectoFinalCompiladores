@@ -5,7 +5,7 @@
 import sys
 
 class MapaMemoria:
-    def __init__(self, dirBase, entero, flotante, tmp, ptr, cte):
+    def __init__(self, dirBase, entero, flotante, tmp, ptr, cte, stack):
         self.gI = dirBase
         self.gF = self.gI + entero
         self.gCI = self.gF + flotante
@@ -17,6 +17,9 @@ class MapaMemoria:
         self.lPI = self.lTF + flotante
         self.lPF = self.lPI + ptr
         self.lim = self.lPF + ptr
+        self.init_pos = stack
+        self.stack_pos = stack
+        self.call_stack = []
 
         #Mapa de Memoria
         self.mapa_memoria = {
@@ -31,6 +34,58 @@ class MapaMemoria:
             self.lPI : [],
             self.lPF : []
         }
+    
+    def era(self, num_pars):
+        tam = (len(self.mapa_memoria[self.lI])
+               + len(self.mapa_memoria[self.lF])
+               + len(self.mapa_memoria[self.lTI])
+               + len(self.mapa_memoria[self.lTF])
+               + len(self.mapa_memoria[self.lPI])
+               + len(self.mapa_memoria[self.lPF])
+               + 1 + num_pars)
+        if self.stack_pos - tam > self.lim:
+            contexto = {
+                        self.lI : self.mapa_memoria[self.lI].copy(),
+                        self.lF : self.mapa_memoria[self.lF].copy(),
+                        self.lTI : self.mapa_memoria[self.lTI].copy(),
+                        self.lTF : self.mapa_memoria[self.lTF].copy(),
+                        self.lPI : self.mapa_memoria[self.lPI].copy(),
+                        self.lPF : self.mapa_memoria[self.lPF].copy(),
+                        'tam' : tam,
+                        'ip' : 0,
+                        'pars' : {}
+                        }
+            self.stack_pos -= tam
+            self.call_stack.append(contexto)
+        else:
+            print("Stack Overflow")
+            sys.exit()
+
+    def param(self, val, mem):
+        self.call_stack[-1]['pars'][mem] = val
+        # print(self.call_stack[-1])
+
+    def gosub(self, instuction_pointer):
+        self.call_stack[-1]['ip'] = instuction_pointer + 1
+        self.mapa_memoria[self.lI] = []
+        self.mapa_memoria[self.lF] = []
+        self.mapa_memoria[self.lTI] = []
+        self.mapa_memoria[self.lTF] = []
+        self.mapa_memoria[self.lPI] = []
+        self.mapa_memoria[self.lPF] = []
+        for direccion in self.call_stack[-1]['pars']:
+            self.insert(direccion, self.call_stack[-1]['pars'][direccion])
+    
+    def endproc(self):
+        contexto = self.call_stack.pop()
+        self.mapa_memoria[self.lI] = contexto[self.lI].copy()
+        self.mapa_memoria[self.lF] = contexto[self.lF].copy()
+        self.mapa_memoria[self.lTI] = contexto[self.lTI].copy()
+        self.mapa_memoria[self.lTF] = contexto[self.lTF].copy()
+        self.mapa_memoria[self.lPI] = contexto[self.lPI].copy()
+        self.mapa_memoria[self.lPF] = contexto[self.lPF].copy()
+        self.stack_pos +=  contexto['tam']
+        return contexto['ip']
 
     def expand(self, context, index):
         length = len(self.mapa_memoria[context])

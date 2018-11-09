@@ -21,7 +21,7 @@ def main():
     global mem
     global func_reg
     dir_func, tabla_constantes, quads, val = parser.parse(str(sys.argv[1]))
-    mem = MapaMemoria.MapaMemoria(val[0], val[1], val[2], val[3], val[4], val[5])
+    mem = MapaMemoria.MapaMemoria(val[0], val[1], val[2], val[3], val[4], val[5], 40000)
     load_constantes(tabla_constantes)
     i = 1
     for q in quads:
@@ -45,9 +45,10 @@ def main():
             stack_pointer += 1
         elif quads[stack_pointer][0] == 3:
             # endproc
-            stack_pointer += 1
+            stack_pointer = mem.endproc()
         elif quads[stack_pointer][0] == 4:
             # return
+            func_reg = mem.find(quads[stack_pointer][3])
             stack_pointer += 1
         elif quads[stack_pointer][0] == 5:
             # ver
@@ -63,12 +64,15 @@ def main():
             stack_pointer = quads[stack_pointer][3] - 1
         elif quads[stack_pointer][0] == 7:
             # era
+            mem.era(quads[stack_pointer][3])
             stack_pointer += 1
         elif quads[stack_pointer][0] == 8:
             # gosub
-            stack_pointer += 1
+            mem.gosub(stack_pointer)
+            stack_pointer = quads[stack_pointer][3] - 1
         elif quads[stack_pointer][0] == 9:
             # param
+            mem.param(mem.find(quads[stack_pointer][1]), quads[stack_pointer][3])
             stack_pointer += 1
         elif quads[stack_pointer][0] == 11:
             # gotof
@@ -247,8 +251,10 @@ def main():
                 mem.insert(quads[stack_pointer][3], op1)
             stack_pointer += 1
         else:
+            print(quads[stack_pointer])
             print('Error')
             sys.exit()
+    print(quads[stack_pointer])
     print(mem.mapa_memoria)
 
 if __name__ == '__main__':

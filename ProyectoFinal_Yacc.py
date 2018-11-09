@@ -20,7 +20,7 @@ precedence = (
 dir_func = {}
 id_programa = ""
 funcion_actual = ""
-func_call = ""
+func_call = []
 tipo_actual = ""
 id_actual = ""
 instr_actual =""
@@ -510,24 +510,26 @@ def p_estatuto(p):
        bloque : BRAIZQ estatutos BRADER '''
 
 def p_func_call(p):
-    '''func_call : ID actualiza_id actualiza_func PARIZQ gen_era args PARDER gen_gosub
-       var_func_call : PARIZQ actualiza_func gen_era args PARDER gen_gosub'''
+    '''func_call : ID actualiza_id actualiza_func PARIZQ args gen_era PARDER gen_gosub
+       var_func_call : PARIZQ actualiza_func args gen_era PARDER gen_gosub'''
 
 def p_actualiza_func(p):
     '''actualiza_func :'''
     global func_call
-    func_call = id_actual
+    func_call.append({'func' : id_actual, 'pars' : []})
 
 def p_gen_era(p):
     '''gen_era : '''
     global quads
     global dir_func
     global num_args
+    global func_call
+    func_actual = func_call[-1]
     num_args = 0
-    if dir_func.get(func_call) != None:
-        quads.genera('era', dir_func[func_call]['dir_inicio'], None,  dir_func[func_call]['tamano'])
+    if dir_func.get(func_actual['func']) != None:
+        quads.genera('era', None, None,  len(dir_func[func_actual['func']]['secuencia_par']))
     else:
-        print("Function", func_call," not declared")
+        print("Function", func_actual['func']," not declared")
         sys.exit()
 
 def p_gen_gosub(p):
@@ -535,8 +537,12 @@ def p_gen_gosub(p):
     global quads
     global mapa
     global pila_operandos
-    quads.genera('gosub', None, func_call, dir_func[func_call]['dir_inicio'])
-    tipo = dir_func[func_call]['tipo']
+    global func_call
+    func_actual = func_call.pop()
+    for pars in func_actual['pars']:
+        quads.genera('param',pars[0], func_actual['func'], pars[1])
+    quads.genera('gosub', None, func_actual['func'], dir_func[func_actual['func']]['dir_inicio'])
+    tipo = dir_func[func_actual['func']]['tipo']
     if tipo != 'void':
         if tipo == 'int':
             retorno = mapa.creaVarLocal('tmpi')
@@ -544,7 +550,7 @@ def p_gen_gosub(p):
             retorno = mapa.creaVarLocal('tmpf')
         quads.genera('=', None, None, retorno)
         pila_operandos.append({'nombre': retorno,
-                               'tipo' : dir_func[func_call]['tipo'],
+                               'tipo' : dir_func[func_actual['func']]['tipo'],
                                'dir_virtual' : retorno})
 
 def p_args(p):
@@ -559,17 +565,20 @@ def p_asig_par(p):
     global dir_func
     global num_args
     global quads
+    global func_call
     arg = pila_operandos.pop()
-    pars = dir_func[func_call]['secuencia_par']
+    func_actual = func_call[-1]
+    pars = dir_func[func_actual['func']]['secuencia_par']
     tam = len(pars)
-    if num_args < len(pars):
+    if num_args < tam:
         if pars[tam - num_args - 1]['tipo'] == arg['tipo']:
-            quads.genera('param', arg['dir_virtual'], None, pars[tam - num_args - 1]['dir_virtual'])
+            func_call[-1]['pars'].append([arg['dir_virtual'], pars[tam - num_args - 1]['dir_virtual']])
+            # quads.genera('param', arg['dir_virtual'], func_actual['func'], pars[tam - num_args - 1]['dir_virtual'])
         else:
             print("Type Mismatch") 
             sys.exit()
     else:
-        print("Function", func_call, "Wrong Number of Arguments", num_args, len(pars))
+        print("Function", func_actual['func'], "Wrong Number of Arguments", num_args, tam)
         sys.exit()
     num_args += 1
 
@@ -747,3 +756,14 @@ def parse(file):
     file.close()
     parser.parse(data)
     return [dir_func, tabla_constantes, quads.quads, mapa.vals]
+'''
+def main():
+    temp = parse(str(sys.argv[1]))
+    i = 1
+    for q in quads.quads:
+        print(i, q)
+        i += 1
+
+if __name__ == '__main__':
+    main()
+'''
