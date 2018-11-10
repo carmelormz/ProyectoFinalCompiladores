@@ -145,6 +145,9 @@ class MapaMemoria:
         return val
 
     def insert(self, direccion, variable):
+        if type(direccion) is str:
+            # deref de apuntador
+            direccion = self.find(int(direccion[1:]))
         if direccion < self.gF:
             # globalInt
             self.expand(self.gI, direccion - self.gI)

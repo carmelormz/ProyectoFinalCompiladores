@@ -516,7 +516,12 @@ def p_func_call(p):
 def p_actualiza_func(p):
     '''actualiza_func :'''
     global func_call
-    func_call.append({'func' : id_actual, 'pars' : []})
+    global dir_func
+    if dir_func.get(id_actual) != None:
+        func_call.append({'func' : id_actual, 'pars' : []})
+    else:
+        print("Function %s not defined, functions must be defined before calling them."%(id_actual))
+        sys.exit()
 
 def p_gen_era(p):
     '''gen_era : '''
