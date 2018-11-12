@@ -151,43 +151,43 @@ class MapaMemoria:
         if direccion < self.gF:
             # globalInt
             self.expand(self.gI, direccion - self.gI)
-            self.mapa_memoria[self.gI][direccion - self.gI] = variable
+            self.mapa_memoria[self.gI][direccion - self.gI] = int(variable)
         elif direccion < self.gCI:
             # globalFloat
             self.expand(self.gF, direccion - self.gF)
-            self.mapa_memoria[self.gF][direccion - self.gF] = variable
+            self.mapa_memoria[self.gF][direccion - self.gF] = float(variable)
         elif direccion < self.gCF:
             # globalConstInt
             self.expand(self.gCI, direccion - self.gCI)
-            self.mapa_memoria[self.gCI][direccion - self.gCI] = variable
+            self.mapa_memoria[self.gCI][direccion - self.gCI] = int(variable)
         elif direccion < self.lI:
             # globalConstFloat
             self.expand(self.gCF, direccion - self.gCF)
-            self.mapa_memoria[self.gCF][direccion - self.gCF] = variable
+            self.mapa_memoria[self.gCF][direccion - self.gCF] = float(variable)
         elif direccion < self.lF:
             # localInt
             self.expand(self.lI, direccion - self.lI)
-            self.mapa_memoria[self.lI][direccion - self.lI] = variable
+            self.mapa_memoria[self.lI][direccion - self.lI] = int(variable)
         elif direccion < self.lTI:
             # localFloat
             self.expand(self.lF, direccion - self.lF)
-            self.mapa_memoria[self.lF][direccion - self.lF] = variable
+            self.mapa_memoria[self.lF][direccion - self.lF] = float(variable)
         elif direccion < self.lTF:
             # localTempInt
             self.expand(self.lTI, direccion - self.lTI)
-            self.mapa_memoria[self.lTI][direccion - self.lTI] = variable
+            self.mapa_memoria[self.lTI][direccion - self.lTI] = int(variable)
         elif direccion < self.lPI:
             # localTempFloat
             self.expand(self.lTF, direccion - self.lTF)
-            self.mapa_memoria[self.lTF][direccion - self.lTF] = variable
+            self.mapa_memoria[self.lTF][direccion - self.lTF] = float(variable)
         elif direccion < self.lPF:
             # localPtrInt
             self.expand(self.lPI, direccion - self.lPI)
-            self.mapa_memoria[self.lPI][direccion - self.lPI] = variable
+            self.mapa_memoria[self.lPI][direccion - self.lPI] = int(variable)
         elif direccion < self.lim:
             # localPtrFloat
             self.expand(self.lPF, direccion - self.lPF)
-            self.mapa_memoria[self.lPF][direccion - self.lPF] = variable
+            self.mapa_memoria[self.lPF][direccion - self.lPF] = int(variable)
         else:
             # error
             print("Memory Error")

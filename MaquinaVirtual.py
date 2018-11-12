@@ -23,13 +23,15 @@ def main():
     dir_func, tabla_constantes, quads, val = parser.parse(str(sys.argv[1]))
     mem = MapaMemoria.MapaMemoria(val[0], val[1], val[2], val[3], val[4], val[5], 40000)
     load_constantes(tabla_constantes)
+    '''
     i = 1
     for q in quads:
         print(i, q)
         i += 1
     print('---------------------------------')
+    '''
     while quads[stack_pointer][0] != 10:
-        print(quads[stack_pointer])
+        # print(quads[stack_pointer])
         if quads[stack_pointer][0] == 0:
             # canvas crear una imagen
             stack_pointer += 1
@@ -250,12 +252,21 @@ def main():
                 op1 = mem.find(quads[stack_pointer][1])
                 mem.insert(quads[stack_pointer][3], op1)
             stack_pointer += 1
+        elif quads[stack_pointer][0] == 43:
+            # %
+            op1 = mem.find(quads[stack_pointer][1])
+            op2 = mem.find(quads[stack_pointer][2])
+            if op2 == 0:
+                print('Division by zero')
+                sys.exit()
+            mem.insert(quads[stack_pointer][3], op1%op2)
+            stack_pointer += 1
         else:
             print(quads[stack_pointer])
             print('Error')
             sys.exit()
-    print(quads[stack_pointer])
-    print(mem.mapa_memoria)
+    # print(quads[stack_pointer])
+    # print(mem.mapa_memoria)
 
 if __name__ == '__main__':
     main()

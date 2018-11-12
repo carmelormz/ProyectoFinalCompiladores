@@ -25,7 +25,7 @@ class TablaSemantica:
         self.operandos = {'int':0, 'float':1, 'None': 2, 'CTE_STR':3}
         self.operadores = {'||':0, '&&':1, '!=':2, '<':3, '>':4,
                            '==':5, '<=':6, '>=':7, '+':8, '-':9,
-                           '*':10, '/':11, '=':12}
+                           '*':10, '/':11, '=':12, '%':13}
         self.tabla_semantica = [([(['' for i in range(len(self.operadores))]) for i in range(len(self.operandos))]) for i in range(len(self.operandos))]
         self.llenar('int', 'int', '||', 'int')
         self.llenar('int', 'int', '&&', 'int')
@@ -40,6 +40,7 @@ class TablaSemantica:
         self.llenar('int', 'int', '*', 'int')
         self.llenar('int', 'int', '/', 'int')
         self.llenar('int', 'int', '=', 'int')
+        self.llenar('int', 'int', '%', 'int')
 
         self.llenar('int', 'float', '||', 'int')
         self.llenar('int', 'float', '&&', 'int')

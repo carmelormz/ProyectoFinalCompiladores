@@ -29,6 +29,7 @@ tokens = [
     'SUMA',
     'RESTA',
     'DIV',
+    'MOD',
     'MULT',
     'ASIG',
     'COMA',
@@ -125,6 +126,7 @@ t_OR = r'\|'
 t_SUMA = r'\+'
 t_RESTA = r'\-'
 t_DIV = r'\/'
+t_MOD = r'\%'
 t_MULT = r'\*'
 t_ASIG = r'\='
 t_COMA = r'\,'

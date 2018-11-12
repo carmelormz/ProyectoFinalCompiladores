@@ -13,7 +13,7 @@ import json
 
 precedence = (
     ('left','SUMA','RESTA'),
-    ('left','MULT','DIV'),
+    ('left','MULT','DIV', 'MOD'),
 )
 # dir_func = {nombre, tipo, tamano, secuencia_par, tabla_vars, dir_inicio}
 # tabla_vars = {nombre, tipo, dim, dir_virual}
@@ -278,7 +278,7 @@ def p_pop_suma_resta(p):
 
 def p_pop_mult_div(p):
     '''pop_mult_div : '''
-    pop_oper(['*', '/'])
+    pop_oper(['*', '/', '%'])
 
 def p_expresion(p):
     '''expresion : expr or_expr
@@ -302,6 +302,7 @@ def p_expresion(p):
        termino : factor mult_div 
        mult_div : MULT push_oper termino pop_mult_div
                 | DIV push_oper termino pop_mult_div
+                | MOD push_oper termino pop_mult_div
                 | '''
 
 def p_factor(p):
