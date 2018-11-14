@@ -3,6 +3,10 @@
 import ProyectoFinal_Yacc as parser
 import MapaMemoria
 import sys
+import turtle
+import math
+
+
 dir_func = {}
 quads = []
 stack_pointer = 0
@@ -20,6 +24,12 @@ def main():
     global stack_pointer
     global mem
     global func_reg
+
+    myTurtle = turtle.Turtle(shape="turtle")
+    screen = turtle.getscreen()
+    screen.colormode(255)
+
+
     dir_func, tabla_constantes, quads, val = parser.parse(str(sys.argv[1]))
     mem = MapaMemoria.MapaMemoria(val[0], val[1], val[2], val[3], val[4], val[5], 40000)
     load_constantes(tabla_constantes)
@@ -96,45 +106,75 @@ def main():
             stack_pointer += 1
         elif quads[stack_pointer][0] == 13:
             # color cambiar color
+            r = mem.find(quads[stack_pointer][1])
+            g = mem.find(quads[stack_pointer][2])
+            b = mem.find(quads[stack_pointer][3])
+            myTurtle.pencolor(r,g,b)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 14:
             # forward
+            dist = mem.find(quads[stack_pointer][3])
+            myTurtle.forward(dist)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 15:
             # backward
+            dist = mem.find(quads[stack_pointer][3])
+            myTurtle.backward(dist)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 16:
             # left
+            angulo = mem.find(quads[stack_pointer][3])
+            myTurtle.left(angulo)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 17:
             # right
+            angulo = mem.find(quads[stack_pointer][3])
+            myTurtle.right(angulo)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 18:
             # turn
+            angulo = mem.find(quads[stack_pointer][3])
+            myTurtle.right(angulo)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 19:
             # size
             stack_pointer += 1
         elif quads[stack_pointer][0] == 20:
             # circle
+            tamCircle = mem.find(quads[stack_pointer][3])
+            myTurtle.circle(tamCircle)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 21:
             # triangle
             stack_pointer += 1
         elif quads[stack_pointer][0] == 22:
             # square
+            dim = mem.find(quads[stack_pointer][3])
+            tam_lados = math.sqrt(dim)
+            #dibujar cuadrado
+            for i in range(4):
+                myTurtle.forward(tam_lados)
+                myTurtle.left(90)
+
             stack_pointer += 1
         elif quads[stack_pointer][0] == 23:
             # ngon
+            num_sides = mem.find(quads[stack_pointer][2])
+            angle = 360.0 / num_sides
+            for i in range(num_sides):
+                myTurtle.forward(70)
+                myTurtle.right(angle)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 24:
             # arc
             stack_pointer += 1
         elif quads[stack_pointer][0] == 25:
             # up
+            myTurtle.penup()
             stack_pointer += 1
         elif quads[stack_pointer][0] == 26:
             # down
+            myTurtle.pendown()
             stack_pointer += 1
         elif quads[stack_pointer][0] == 27:
             # rotate
@@ -267,6 +307,8 @@ def main():
             sys.exit()
     # print(quads[stack_pointer])
     # print(mem.mapa_memoria)
+
+    screen._root.mainloop()
 
 if __name__ == '__main__':
     main()
