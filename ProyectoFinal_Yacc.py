@@ -698,8 +698,8 @@ def p_instruccion(p):
                    | CIRCLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
                    | TRIANGLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
                    | SQUARE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
-                   | NGON actualiza_instr PARIZQ expresion COMA expresion PARDER fin_instr2 transform PUNTCOM
-                   | ARC actualiza_instr PARIZQ expresion COMA expresion PARDER fin_instr2 trans PUNTCOM
+                   | NGON actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
+                   | ARC actualiza_instr PARIZQ expresion PARDER fin_instr1 trans PUNTCOM
                    | UP actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
                    | DOWN actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
                    | COLOR PARIZQ expresion COMA expresion COMA expresion PARDER fin_color PUNTCOM

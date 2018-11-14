@@ -28,6 +28,12 @@ def main():
     myTurtle = turtle.Turtle(shape="turtle")
     screen = turtle.getscreen()
     screen.colormode(255)
+    #Function to close Turtle Window
+    def close():
+        turtle.bye()
+    # When clicking SPACE, close Turtle Window
+    screen.onkeypress(close, "space")
+    screen.listen()
 
 
     dir_func, tabla_constantes, quads, val = parser.parse(str(sys.argv[1]))
@@ -146,6 +152,10 @@ def main():
             stack_pointer += 1
         elif quads[stack_pointer][0] == 21:
             # triangle
+            size = mem.find(quads[stack_pointer][3])
+            for i in range(3):
+                myTurtle.forward(size)
+                myTurtle.left(120)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 22:
             # square
@@ -159,7 +169,7 @@ def main():
             stack_pointer += 1
         elif quads[stack_pointer][0] == 23:
             # ngon
-            num_sides = mem.find(quads[stack_pointer][2])
+            num_sides = mem.find(quads[stack_pointer][3])
             angle = 360.0 / num_sides
             for i in range(num_sides):
                 myTurtle.forward(70)
@@ -167,6 +177,8 @@ def main():
             stack_pointer += 1
         elif quads[stack_pointer][0] == 24:
             # arc
+            radius = mem.find(quads[stack_pointer][3])
+            myTurtle.circle(radius, 180)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 25:
             # up
@@ -308,6 +320,7 @@ def main():
     # print(quads[stack_pointer])
     # print(mem.mapa_memoria)
 
+    #INICIA APLICACION TURTLE
     screen._root.mainloop()
 
 if __name__ == '__main__':

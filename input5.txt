@@ -2,6 +2,6 @@ module hello_world;
 import "hello"
 main {
     color(255,035,001);
-    circle(50);
+    triangle(100);
     return;
 }

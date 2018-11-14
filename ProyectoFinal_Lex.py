@@ -60,7 +60,7 @@ palabrasReservadas = {
     'down' : 'DOWN',
     'return' : 'RETURN',
     'circle' : 'CIRCLE',
-    'triange' : 'TRIANGLE',
+    'triangle' : 'TRIANGLE',
     'square' : 'SQUARE',
     'ngon' : 'NGON',
     'arc' : 'ARC',
