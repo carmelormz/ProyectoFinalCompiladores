@@ -24,18 +24,6 @@ def main():
     global stack_pointer
     global mem
     global func_reg
-
-    myTurtle = turtle.Turtle(shape="turtle")
-    screen = turtle.getscreen()
-    screen.colormode(255)
-    #Function to close Turtle Window
-    def close():
-        turtle.bye()
-    # When clicking SPACE, close Turtle Window
-    screen.onkeypress(close, "space")
-    screen.listen()
-
-
     dir_func, tabla_constantes, quads, val = parser.parse(str(sys.argv[1]))
     mem = MapaMemoria.MapaMemoria(val[0], val[1], val[2], val[3], val[4], val[5], 40000)
     load_constantes(tabla_constantes)
@@ -46,20 +34,42 @@ def main():
         i += 1
     print('---------------------------------')
     '''
+    myTurtle = turtle.Turtle(shape="turtle")
+    screen = turtle.getscreen()
+    fill = False
+    #Function to close Turtle Window
+    def close():
+        turtle.bye()
+    # When clicking SPACE, close Turtle Window
+    screen.onkeypress(close, "space")
+    screen.listen()
+
     while quads[stack_pointer][0] != 10:
         # print(quads[stack_pointer])
         if quads[stack_pointer][0] == 0:
             # canvas crear una imagen
+            width = int(mem.find(quads[stack_pointer][2]))
+            height = int(mem.find(quads[stack_pointer][2]))
+            screen.screensize(width,height)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 1:
             # background color de imagen
-            r = mem.find(quads[stack_pointer][1])
-            g = mem.find(quads[stack_pointer][2])
-            b = mem.find(quads[stack_pointer][3])
+            r = int(mem.find(quads[stack_pointer][1]))
+            g = int(mem.find(quads[stack_pointer][2]))
+            b = int(mem.find(quads[stack_pointer][3]))
+            screen.colormode(255)
+            screen.bgcolor(r, g, b)
+            screen.update()
             stack_pointer += 1
         elif quads[stack_pointer][0] == 2:
             # import abrir una imagen
+            '''
             image = quads[stack_pointer][3][1:-1]
+            print(image)
+            screen.setup(720, 1334)
+            screen.bgpic("image.jpg")
+            screen.update()
+            '''
             stack_pointer += 1
         elif quads[stack_pointer][0] == 3:
             # endproc
@@ -144,6 +154,8 @@ def main():
             stack_pointer += 1
         elif quads[stack_pointer][0] == 19:
             # size
+            tam = mem.find(quads[stack_pointer][3])
+            myTurtle.pensize(tam)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 20:
             # circle
@@ -196,6 +208,7 @@ def main():
             stack_pointer += 1
         elif quads[stack_pointer][0] == 29:
             # fill
+            fill = True
             stack_pointer += 1
         elif quads[stack_pointer][0] == 30:
             # ||
@@ -313,6 +326,23 @@ def main():
                 sys.exit()
             mem.insert(quads[stack_pointer][3], op1%op2)
             stack_pointer += 1
+        elif quads[stack_pointer][0] == 44:
+            # input
+            op1 = input()
+            try:
+                op1 = int(op1)
+            except ValueError:
+                print("Inputs must be numeric")
+                sys.exit()
+            mem.insert(quads[stack_pointer][3], op1)
+            stack_pointer += 1
+        elif quads[stack_pointer][0] == 45:
+            # module
+            screen.title(quads[stack_pointer][3][1:-1])
+            stack_pointer += 1
+        elif quads[stack_pointer][0] == 46:
+            # draw
+            stack_pointer += 1
         else:
             print(quads[stack_pointer])
             print('Error')
@@ -322,6 +352,7 @@ def main():
 
     #INICIA APLICACION TURTLE
     screen._root.mainloop()
+   # screen.getcanvas().postscript(file="temp.ps")
 
 if __name__ == '__main__':
     main()

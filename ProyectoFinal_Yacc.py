@@ -25,6 +25,8 @@ tipo_actual = ""
 id_actual = ""
 instr_actual =""
 num_args = 0
+asig_input = False
+negativo = False
 tabla_semantica = tb.TablaSemantica()
 pila_operadores = []
 pila_operandos = []
@@ -36,7 +38,7 @@ mapa = gd.GeneradorDireccion(5000, 1000, 1000, 1000, 500, 500)
 tabla_constantes = {}
 # DEFINICION DE LAS REGLAS DE LA GRAMATICA
 def p_programa(p):
-    '''programa : MODULE ID creaDirFunc PUNTCOM ajustes var_func tipo_main MAIN actualiza_id crea_func bloque_func'''
+    '''programa : MODULE CTE_STR creaDirFunc PUNTCOM ajustes var_func tipo_main MAIN actualiza_id crea_func bloque_func'''
 
 def p_tipo_main(p):
     '''tipo_main : '''
@@ -55,6 +57,7 @@ def p_creaDirFunc(p):
     funcion_actual = 'global'
     id_programa = p[-1]
     dir_func['global'] = {'nombre': id_programa, 'tipo':'void', 'secuencia_par': [],'tabla_vars': {}, 'dir_inicio': 0, 'tamano': 0}
+    quads.genera('module', None, None, p[-1])
 
 def dir_constant(val, tipo):
     global tabla_constantes
@@ -66,8 +69,8 @@ def dir_constant(val, tipo):
     return dir_virtual
 
 def p_ajustes(p):
-    '''ajustes : CANVAS BRAIZQ WIDTH CTE_I PUNTCOM HEIGHT CTE_I PUNTCOM BACKGROUND CTE_F COMA CTE_F COMA CTE_F PUNTCOM BRADER
-               | IMPORT CTE_STR'''
+    '''ajustes : CANVAS BRAIZQ WIDTH CTE_I PUNTCOM HEIGHT CTE_I PUNTCOM BACKGROUND CTE_I COMA CTE_I COMA CTE_I PUNTCOM BRADER
+               | IMPORT CTE_STR PUNTCOM'''
     global quads
     global pila_saltos
     if len(p) > 4:
@@ -309,7 +312,6 @@ def p_factor(p):
     '''factor : PARIZQ push_paren e PARDER pop_paren
               | var
               | RESTA neg_push var neg_pop'''
-negativo = False
 
 def p_neg_push(p):
     '''neg_push : '''
@@ -593,20 +595,34 @@ def p_asignacion(p):
     global quads
     global dir_func
     global pila_operandos
-    tempRes = pila_operandos.pop()
-    tempAsig = pila_operandos.pop()
-    if dir_func[funcion_actual]['tabla_vars'].get(p[1]) == None and dir_func['global']['tabla_vars'].get(p[1]) == None:
-        print("Variable %s no declarada." %(p[1]))
-        sys.exit()
-    if tempRes['tipo'] == 'int' or tempRes['tipo'] == 'float':
-        quads.genera('=', tempRes['dir_virtual'], None, tempAsig['dir_virtual'])
+    global asig_input
+
+    if asig_input:
+        asig_input = False
+        tempAsig = pila_operandos.pop()
+        if dir_func[funcion_actual]['tabla_vars'].get(p[1]) == None and dir_func['global']['tabla_vars'].get(p[1]) == None:
+            print("Variable %s no declarada." %(p[1]))
+            sys.exit()
+        quads.genera('input', None, None, tempAsig['dir_virtual'])
     else:
-        print('Type Mismatch')
-        sys.exit()
+        tempRes = pila_operandos.pop()
+        tempAsig = pila_operandos.pop()
+        if dir_func[funcion_actual]['tabla_vars'].get(p[1]) == None and dir_func['global']['tabla_vars'].get(p[1]) == None:
+            print("Variable %s no declarada." %(p[1]))
+            sys.exit()
+        if tempRes['tipo'] == 'int' or tempRes['tipo'] == 'float':
+            quads.genera('=', tempRes['dir_virtual'], None, tempAsig['dir_virtual'])
+        else:
+            print('Type Mismatch')
+            sys.exit()
 
 def p_exp_input(p):
-    '''exp_input : expresion
-                 | INPUT PARIZQ PARDER'''
+    '''exp_input : expresion'''
+
+def p_input(p):
+    '''exp_input : INPUT PARIZQ PARDER'''
+    global asig_input
+    asig_input = True
 
 def p_condicion(p):
     '''condicion : IF PARIZQ expresion fin_exp PARDER bloque else_bloque fin_cond
@@ -703,13 +719,16 @@ def p_instruccion(p):
                    | UP actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
                    | DOWN actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
                    | COLOR PARIZQ expresion COMA expresion COMA expresion PARDER fin_color PUNTCOM
-       transform : fill trans
-                 |
        fill : PUNTO FILL actualiza_instr PARIZQ PARDER fin_instr
        trans : PUNTO altera trans
              | 
        altera : ROTATE actualiza_instr PARIZQ expresion PARDER fin_instr1
               | STRETCH actualiza_instr PARIZQ expresion PARDER fin_instr1'''
+
+def p_dibuja(p):
+    '''transform : fill trans
+                 | '''
+    quads.genera("draw", None, None, None)
 
 def p_actualiza_instr(p):
     '''actualiza_instr : '''

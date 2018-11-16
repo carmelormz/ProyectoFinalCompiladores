@@ -36,7 +36,8 @@ class Quad:
                                   '<' : 33, '>' : 34, '==' : 35,
                                   '<=' : 36, '>=' : 37, '+' : 38,
                                   '-' : 39, '*' : 40, '/' : 41,
-                                  '=' : 42, '%' : 43}
+                                  '=' : 42, '%' : 43, 'input' : 44,
+                                  'module': 45, 'draw' : 46}
     def genera(self, operador, op_izq, op_der, res):
         operacion = self.codigos_operacion[operador]
         # operacion = operador
