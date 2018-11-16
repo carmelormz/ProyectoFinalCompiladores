@@ -1,0 +1,217 @@
+module "hello_world";
+import "image.jpg";
+
+int fib_r(int n){
+    int return_val;
+    if (n < 3){
+        if (n <= 1){
+            return_val = 0;
+        }else{
+            return_val = 1;
+        }
+    } else {
+        return_val = fib_r(n - 1) + fib_r(n - 2);
+    }
+    return return_val;
+}
+
+int fib_i(int n){
+    int curr, last, counter;
+    int return_val;
+    if ( n<= 1){
+        return_val = 0;
+    } else {
+        counter = 3;
+        curr = 1;
+        last = 0;
+        repeat(counter < n){
+            curr = curr + last;
+            last = curr - last;
+            counter = counter + 1;
+        }
+        return_val = curr + last;
+    }
+    return return_val;
+}
+
+void matmult(){
+    int A[2][2], B[2][2], C[2][2];
+    int i, j, k;
+    i = 0;
+    repeat (i < 2){
+        j = 0;
+        repeat (j < 2){
+            A[i][j] = i + j;
+            B[i][j] = i - j;
+            C[i][j] = 0;
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+    i = 0;
+    repeat (i < 2){
+        j = 0;
+        repeat (j < 2){
+            k = 0;
+            repeat (k < 2){
+                C[i][j] = C[i][j] + A[i][k]*B[k][j];
+                k = k + 1;
+            }
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+    print("A", "");
+    i = 0;
+    repeat (i < 2){
+        j = 0;
+        repeat (j < 2){
+            print(A[i][j], " ");
+            j = j + 1;
+        }
+        print("");
+        i = i + 1;
+    }
+    print("", "B", "");
+    i = 0;
+    repeat (i < 2){
+        j = 0;
+        repeat (j < 2){
+            print(B[i][j], " ");
+            j = j + 1;
+        }
+        print("");
+        i = i + 1;
+    }
+    print("", "C", "");
+    i = 0;
+    repeat (i < 2){
+        j = 0;
+        repeat (j < 2){
+            print(C[i][j], " ");
+            j = j + 1;
+        }
+        print("");
+        i = i + 1;
+    }
+    print("");
+    return;
+}
+
+void sort(){
+    int A[10];
+    int n;
+    int i, j, temp;
+    n = 14;
+    i = 0;
+    print("Sort", "", "Enter 10 values to Vector A", "");
+    repeat (i < 10){
+        print(i + 1, " = ");
+        A[i] = input();
+        print("");
+        i = i + 1;
+    }
+    i = 0;
+    repeat (i < n - 1){
+        j = i + 1;
+        repeat (j < 10){
+            if (A[i] > A[j]){
+                temp = A[i];
+                A[i] = A[j];
+                A[j] = temp;
+            }
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+    i = 0;
+    print("Sorted", "");
+    repeat (i < 10){
+        print(A[i], " ");
+        i = i + 1;
+    }
+    print("", "");
+    return;
+}
+
+void find(){
+    int A[10];
+    int n;
+    int i, j, temp, index;
+    n = 10;
+    i = 0;
+    print("Find", "", "Enter 10 values to Vector A", "");
+    repeat (i < 10){
+        print(i + 1, " = ");
+        A[i] = input();
+        print("");
+        i = i + 1;
+    }
+    print("Enter a value to find in vector : ");
+    temp = input();
+    index = -1;
+    print("");
+    i = 0;
+    repeat (i < 10){
+        if (A[i] == temp){
+            index = i;
+        }
+        i = i + 1;
+    }
+    if (index < 0){
+        print("Value Does ", temp, " not exist in Vector", "");
+    } else {
+        print("Value ", temp, " is in index ", index, "");
+    }
+    return;
+}
+
+int fact_r(int x){
+    int return_val;
+    if(x <= 1){
+        return_val = 1;
+    } else {
+        return_val = x*fact_r(x - 1);
+    }
+    return return_val;
+}
+
+void stack_overflow(){
+    stack_overflow();
+    return;
+}
+
+main{
+    int nth_fibonacci;
+    # Code for Factorial #
+    #
+    print("Factorial ", 3," = ",fact_r(3), "");
+    #
+
+    # Code for nth fibonacci #
+    #
+    print("Enter an integer to find the nth fibonacci number : ");
+    nth_fibonacci = input();
+    print("");
+    print("Recursive fibonacci ", nth_fibonacci, " = " , fib_r(nth_fibonacci), "");
+    print("Iterativo fibonacci ", nth_fibonacci, " = " , fib_i(nth_fibonacci), "");
+    #
+
+    # Code for Matmult #
+    #
+    print("Matmult", "");
+    matmult();
+    #
+
+    # Code for sort #
+    #
+    sort();
+    #
+
+    # Code for Factorial #
+    #
+    find();
+    #
+    stack_overflow();
+    return;
+}

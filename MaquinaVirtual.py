@@ -114,11 +114,14 @@ def main():
             opdo = quads[stack_pointer][3]
             if type(opdo) is str:
                 if opdo[0] == '~':
-                    print(mem.find(opdo))
+                    print(mem.find(opdo), end='')            
                 else:
-                    print(opdo)
+                    if len(opdo[1:-1]) == 0:
+                        print("")
+                    else:
+                        print(opdo[1:-1], end='')
             else:
-                print(mem.find(opdo))
+                print(mem.find(opdo), end='')
             stack_pointer += 1
         elif quads[stack_pointer][0] == 13:
             # color cambiar color

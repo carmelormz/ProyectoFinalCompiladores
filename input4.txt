@@ -1,5 +1,5 @@
-module hello_world;
-import "hello.jpg"
+module "hello_world";
+import "image.jpg";
 int a[2][2];
 int func(int x){
     return x;
@@ -9,7 +9,8 @@ int func2(int x){
 }
 main {
     int i, x;
-    a[0][func2(0)] = 3;
+    a[0][func2(0)] = 4;
+    print(a[0][func2(0)]);
     a[func2(1)][1] = a[1][1] + func2(func2(3 + a[0][0])) + func2(3 + a[0][0]);
     i = 0;
     repeat(i < 10){

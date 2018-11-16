@@ -1,39 +1,15 @@
-module hello_world;
+module "hello_world.jpg";
 canvas {
     width 1080;
     height 720;
-    background 250.1, 250.1, 250.1;
-}
-int var1, var2, var3;
-float var4[3], var5[4][5];
-float func(){
-    float funcvar6, funcvar7[3];
-    if (5 < 9){
-    
-    } else {
-        func();
-    }
-    if (5 < 9){
-
-    }
-    return 0;
-}
-void func1(){
-    return;
-}
-
-int func2(float par1, float par2){
-    float x;
-    return 0;
+    background 0, 250, 0;
 }
 
 main {
-    float mainvar8, mainvar9;
-    circle(3).fill().rotate(56);
-    arc(3, 3).rotate(5).stretch(56);
-    circle(3);
     up();
+    circle(10).fill().rotate(56);
+    arc(15).rotate(5).stretch(56);
     down();
-    forward(9 + func2(67.0 + 7 ,  8.9));
-    return 0;
+    ngon(50);
+    return;
 }

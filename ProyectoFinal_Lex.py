@@ -2,7 +2,7 @@
 #Autores: Carmelo Ramirez (A01175987) y Juan Pablo Galaz (A01251406)
 
 import ply.lex as lex
-
+import sys
 
 #------------- LEXICO DEL LENGUAJE ----------
 #TOKENS VALIDOS EN EL LENGUAJE.
@@ -103,9 +103,12 @@ def t_CTE_I(t):
 
 #REGLA PARA DETECTAR CONSTANTES DE TEXTO.
 def t_CTE_STR(t):
-    r'\"[a-zA-Z0-9_\.\(\)-\[\]]*\"'
+    r'\"[^\"\~]*\"'
     return t
 
+def t_COMMENT(t):
+    r'\#[^\#]*\#'
+    pass
 
 #REGLAS PARA DETECTAR CARACTERES ESPECIALES.
 t_BRADER = r'\}'
@@ -136,8 +139,9 @@ t_ignore = ' \t\n'
 
 #MENSAJE DE ERROR.
 def t_error(t):
-    print("Caracter Invalido")
+    print("Invalid character")
     t.lexer.skip(1)
+    sys.exit()
 
 
 #CREACION DE INSTANCIA DE LEXER.
