@@ -176,42 +176,49 @@ int fact_r(int x){
     return return_val;
 }
 
-void stack_overflow(){
-    stack_overflow();
+void stack_overflow(int x){
+    print(x, "");
+    stack_overflow(x + 1);
     return;
 }
 
 main{
-    int nth_fibonacci;
+    int nth_fibonacci, fact;
     # Code for Factorial #
     #
-    print("Factorial ", 3," = ",fact_r(3), "");
+        print("Enter an integer to its factorial : ");
+        fact = input();
+        print("", "Factorial ", 3," = ", fact_r(fact), "");
     #
-
     # Code for nth fibonacci #
     #
-    print("Enter an integer to find the nth fibonacci number : ");
-    nth_fibonacci = input();
-    print("");
-    print("Recursive fibonacci ", nth_fibonacci, " = " , fib_r(nth_fibonacci), "");
-    print("Iterativo fibonacci ", nth_fibonacci, " = " , fib_i(nth_fibonacci), "");
+        print("Enter an integer to find the nth fibonacci number : ");
+        nth_fibonacci = input();
+        print("");
+        print("Recursive fibonacci ", nth_fibonacci, " = " , fib_r(nth_fibonacci), "");
+        print("Iterativo fibonacci ", nth_fibonacci, " = " , fib_i(nth_fibonacci), "");
     #
 
     # Code for Matmult #
     #
-    print("Matmult", "");
-    matmult();
+        print("Matmult", "");
+        matmult();
     #
 
     # Code for sort #
     #
-    sort();
+        sort();
     #
 
-    # Code for Factorial #
+    # Code for Find #
     #
-    find();
+        find();
     #
-    stack_overflow();
+
+    # Code for Stack Overflow trial#
+    # 
+        stack_overflow(0);
+    #
+    stack_overflow(0);
     return;
 }

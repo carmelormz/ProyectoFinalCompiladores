@@ -18,28 +18,43 @@ precedence = (
 # dir_func = {nombre, tipo, tamano, secuencia_par, tabla_vars, dir_inicio}
 # tabla_vars = {nombre, tipo, dim, dir_virual}
 dir_func = {}
+# Nombre del programa que se describe en module.
 id_programa = ""
+# La funcion acutal, se actualiza al tiempo de definir una funcion.
 funcion_actual = ""
+# Pila de llamada de funciones para el control de parametros.
 func_call = []
+# Tipo actual, se actualiza al tiempo de definir una nueva variable.
 tipo_actual = ""
+# Id actual, se actualiza al tiempo de definir una nueva variable.
 id_actual = ""
+# Instruccion actual, se actualiza al declarar una figura a dibujar.
 instr_actual =""
+# Num args, el numero de argumentos en la llamada de funcion
 num_args = 0
 asig_input = False
 negativo = False
+# Tabla Semantica para Resolver el tipo de una operacion
 tabla_semantica = tb.TablaSemantica()
+# Pila de operadores.
 pila_operadores = []
+# Pila de operandos.
 pila_operandos = []
+# Pila de Saltos
 pila_saltos = []
+# Estructura para genera quadruplos
 quads = q.Quad()
+# Pila de variables dimensionadas para tener casos A[B[C[1]]]
 var_dim = []
-# dirBase, entero, flotante, tmp, ptr, cte
+# Cantidad de direcciones para cada tipo dirBase, entero, flotante, tmp, ptr, cte.
 mapa = gd.GeneradorDireccion(5000, 1000, 1000, 1000, 500, 500)
+# Tabla de constantes
 tabla_constantes = {}
 # DEFINICION DE LAS REGLAS DE LA GRAMATICA
 def p_programa(p):
     '''programa : MODULE CTE_STR creaDirFunc PUNTCOM ajustes var_func tipo_main MAIN actualiza_id crea_func bloque_func'''
 
+# Funcion para rellenar el goto del modulo main.
 def p_tipo_main(p):
     '''tipo_main : '''
     global tipo_actual
@@ -49,6 +64,7 @@ def p_tipo_main(p):
     tipo_actual = 'void'
     quads.rellena(pila_saltos.pop())
 
+# Funcion para crear el directorio de funciones, genera el quadruplo module.
 def p_creaDirFunc(p):
     '''creaDirFunc : '''
     global dir_func
@@ -59,6 +75,7 @@ def p_creaDirFunc(p):
     dir_func['global'] = {'nombre': id_programa, 'tipo':'void', 'secuencia_par': [],'tabla_vars': {}, 'dir_inicio': 0, 'tamano': 0}
     quads.genera('module', None, None, p[-1])
 
+# Funcion para agregar una constante en la tabla de constantes y regresar su dirección virtual.
 def dir_constant(val, tipo):
     global tabla_constantes
     if tabla_constantes.get(val) == None:
@@ -68,6 +85,7 @@ def dir_constant(val, tipo):
         dir_virtual = tabla_constantes[val]
     return dir_virtual
 
+# Crea los modulos necesarios para los ajustes de pantalla.
 def p_ajustes(p):
     '''ajustes : CANVAS BRAIZQ WIDTH CTE_I PUNTCOM HEIGHT CTE_I PUNTCOM BACKGROUND CTE_I COMA CTE_I COMA CTE_I PUNTCOM BRADER
                | IMPORT CTE_STR PUNTCOM'''
@@ -84,20 +102,33 @@ def p_ajustes(p):
     pila_saltos.append(quads.contador)
     quads.genera('goto',None, None, None)
 
+# Reglas Sintactica para eliminar Shift/Reduce
 def p_var_func(p):
     '''var_func : tipo ID actualiza_id var_o_func
-                | '''
+                | 
+       var_o_func : PARIZQ crea_func pars PARDER bloque_func funcs
+                  | crea_var lista_dec vars_lista PUNTCOM var_func'''
 
+# Actualizar el Id actual
 def p_actualiza_id(p):
     '''actualiza_id : '''
     global id_actual
     id_actual = p[-1]
     p[0] = p[-1]
 
-def p_var_o_func(p):
-    '''var_o_func : PARIZQ crea_func pars PARDER bloque_func funcs
-                  | crea_var lista_dec vars_lista PUNTCOM var_func'''
+# Regla sintactica para el tipo posible de variables
+def p_tipo(p):
+    '''tipo : INT actualiza_tipo
+            | FLOAT actualiza_tipo'''
+    p[0] = p[1]
 
+# Actualizar el Tipo actual
+def p_actualiza_tipo(p):
+    '''actualiza_tipo : '''
+    global tipo_actual
+    tipo_actual = p[-1]
+
+# Funcion para agregar a la tabla de variables
 def p_crea_var(p):
     '''crea_var : '''
     global dir_func
@@ -106,7 +137,8 @@ def p_crea_var(p):
     else:
         print("Variable %s ya declarada" %(id_actual))
         sys.exit()
-    
+
+# Funcion para declar una variable dimensionada 
 def p_lista_dec(p):
     '''lista_dec : CORIZQ CTE_I CORDER matriz_dec
                  | '''
@@ -114,6 +146,7 @@ def p_lista_dec(p):
     global mapa
     tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
     if len(p) > 2:
+        # Si sí es dimensionada
         if p[2] < 1:
             print("Dimension must be greater than 1, var %s" %(id_actual))
             sys.exit()
@@ -133,6 +166,7 @@ def p_lista_dec(p):
             dir_virtual = mapa.creaVarLocal(tipo, tam)
         dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual'] = dir_virtual
     else:
+        # Es variable simple
         dir_func[funcion_actual]['tamano'] += 1
         dir_virtual = 0
         if funcion_actual == 'global':
@@ -141,6 +175,7 @@ def p_lista_dec(p):
             dir_virtual = mapa.creaVarLocal(tipo)
         dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual'] = dir_virtual
 
+# Funcion para declar una variable dimensionada de dos dimensiones.
 def p_matriz_dec(p):
     '''matriz_dec : CORIZQ CTE_I CORDER
                   | '''
@@ -151,11 +186,13 @@ def p_matriz_dec(p):
             print("Second dimension must be greater than 1 for variable %s" %(id_actual))
             sys.exit()
 
+# Define un bloque de funcion.
 def p_bloque_func(p):
     '''bloque_func : BRAIZQ vars_estatutos RETURN returns BRADER end_sub'''
     global funcion_actual
     funcion_actual = 'global'
 
+# Genera quadruplo fin de funcion o fin de program en caso de modulo main
 def p_end_sub(p):
     '''end_sub : '''
     global quads
@@ -166,6 +203,7 @@ def p_end_sub(p):
     else:
         quads.genera('endproc', None, None, None)
 
+# Reglas Sintacticas de estatutos, algunas agregadas para eliminar Shift/Reduce
 def p_vars_estatutos(p):
     ''' vars_estatutos : vars estatutos
                        | estatutos
@@ -182,6 +220,7 @@ def p_vars_estatutos(p):
              | VOID tipo_void ID actualiza_id crea_func PARIZQ pars PARDER bloque_func
         var_func : VOID tipo_void ID actualiza_id crea_func PARIZQ pars PARDER bloque_func funcs'''
 
+# Genera el quadrupllo de retorno para una función
 def p_returns(p):
     '''returns : expresion PUNTCOM
                | PUNTCOM'''
@@ -191,6 +230,7 @@ def p_returns(p):
         tempRes = pila_operandos.pop()
         quads.genera('return', None, None, tempRes['dir_virtual'])
 
+# Regla sintactica para definir parametros de una funcion.
 def p_pars(p):
     '''pars : tipo ID actualiza_id crea_var gen_dir par
             | '''
@@ -198,6 +238,7 @@ def p_pars(p):
         dir_virtual = dir_func[funcion_actual]['tabla_vars'][p[2]]['dir_virtual']
         dir_func[funcion_actual]['secuencia_par'].append({'nombre': p[2], 'tipo': p[1], 'dir_virtual' : dir_virtual})
 
+# Regla sintactica que apoya a definir parametros de una funcion, elimina regla ambigua.
 def p_par(p):
     '''par : COMA tipo ID actualiza_id crea_var gen_dir par
            | '''
@@ -205,17 +246,20 @@ def p_par(p):
         dir_virtual = dir_func[funcion_actual]['tabla_vars'][p[3]]['dir_virtual']
         dir_func[funcion_actual]['secuencia_par'].append({'nombre': p[3], 'tipo': p[2], 'dir_virtual' : dir_virtual})
 
+# Genera direccion virtual para parametro.
 def p_gen_dir(p):
     '''gen_dir : '''
     global dir_func
     dir_virtual = mapa.creaVarLocal(dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo'])
     dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual'] = dir_virtual
 
+# Actualiza al tipo actual como void.
 def p_tipo_void(p):
     '''tipo_void : '''
     global tipo_actual
     tipo_actual = p[-1]
 
+# Regla para agregar una funcion al directorio de funciones.
 def p_crea_func(p):
     '''crea_func : '''
     global quads
@@ -230,17 +274,20 @@ def p_crea_func(p):
         print("Funcion %s ya declarada" %(funcion_actual))
         sys.exit()
 
+# Funcion para agregar un operador a la pila de operadores.
 def p_push_oper(p):
     '''push_oper : '''
     global pila_operadores
     pila_operadores.append(p[-1])
 
+# Funcion para sacar un operadorer de la pila de operadores.
 def pop_oper(operadores):
     global pila_operadores
     global pila_operandos
     global mapa
     if len(pila_operadores) == 0 : return
     pop = False
+    # Ver si el operador encima de la pila es uno de los operadores que se deben sacar
     for i in operadores:
         if i == pila_operadores[-1]:
             pop = True
@@ -254,7 +301,6 @@ def pop_oper(operadores):
                 dir_virtual = mapa.creaVarLocal('tmpi')
             else:
                 dir_virtual = mapa.creaVarLocal('tmpf')
-            # TODO cambiar nombre por dir_virtual
             quads.genera(oper, izq['dir_virtual'], der['dir_virtual'], dir_virtual)
             pila_operandos.append({'nombre': 'temp',
                                    'tipo' : tipo_res,
@@ -263,55 +309,61 @@ def pop_oper(operadores):
             print("Type Mismatch")
             sys.exit()
 
+# Funcion para sacar el operadorer | de la pila de operadores.
 def p_pop_or(p):
     '''pop_or : '''
-    pop_oper(['||'])
+    pop_oper(['|'])
 
+# Funcion para sacar el operadorer & de la pila de operadores.
 def p_pop_and(p):
     '''pop_and : '''
-    pop_oper(['&&'])
+    pop_oper(['&'])
 
+# Funcion para sacar un operadore relacional de la pila de operadores.
 def p_pop_rel_e(p):
     '''pop_rel_e : '''
     pop_oper(['!=', '<', '>', '<=', '>=', '=='])
 
+# Funcion para sacar un operador suma o resta de la pila de operadores.
 def p_pop_suma_resta(p):
     '''pop_suma_resta : '''
     pop_oper(['+', '-'])
 
+# Funcion para sacar un operador multiplica, division o modulo  de la pila de operadores.
 def p_pop_mult_div(p):
     '''pop_mult_div : '''
     pop_oper(['*', '/', '%'])
 
+# Reglas sintacticas de expresiones.
 def p_expresion(p):
-    '''expresion : expr or_expr
-       or_expr : OR push_oper expresion pop_or
+    '''expresion : expr pop_or or_expr
+       or_expr : OR push_oper expresion
                | 
-       expr : exp and_exp
-       and_exp : AND push_oper expr pop_and
+       expr : exp pop_and and_exp
+       and_exp : AND push_oper expr
                | 
-       exp : e rel_e
-       rel_e : DIF push_oper exp pop_rel_e
-             | MENOR push_oper exp pop_rel_e
-             | MAYOR push_oper  exp pop_rel_e
-             | MENIGUAL push_oper exp pop_rel_e
-             | MAYIGUAL push_oper exp pop_rel_e
-             | IGUAL push_oper exp pop_rel_e
+       exp : e pop_rel_e rel_e
+       rel_e : DIF push_oper exp
+             | MENOR push_oper exp
+             | MAYOR push_oper  exp
+             | MENIGUAL push_oper exp
+             | MAYIGUAL push_oper exp
+             | IGUAL push_oper exp
              |
-       e : termino suma_resta
-       suma_resta : SUMA push_oper e pop_suma_resta
-                  | RESTA push_oper e pop_suma_resta
+       e : termino pop_suma_resta suma_resta
+       suma_resta : SUMA push_oper e
+                  | RESTA push_oper e
                   | 
-       termino : factor mult_div 
-       mult_div : MULT push_oper termino pop_mult_div
-                | DIV push_oper termino pop_mult_div
-                | MOD push_oper termino pop_mult_div
-                | '''
-
-def p_factor(p):
-    '''factor : PARIZQ push_paren e PARDER pop_paren
+       termino : factor pop_mult_div mult_div 
+       mult_div : MULT push_oper termino
+                | DIV push_oper termino
+                | MOD push_oper termino
+                | 
+       factor : PARIZQ push_paren expresion PARDER pop_paren
               | var
-              | RESTA neg_push var neg_pop'''
+              | RESTA neg_push var neg_pop
+       var : ID actualiza_id push_paren var_func_call pop_paren
+       var_func_call : lista'''
 
 def p_neg_push(p):
     '''neg_push : '''
@@ -323,9 +375,7 @@ def p_neg_pop(p):
     global negativo
     negativo = False
 
-def p_var(p):
-    '''var : ID actualiza_id var_func_call'''
-
+# Agregar constante entera a la pila de operadores.
 def p_var_int(p):
     '''var : CTE_I'''
     global pila_operandos
@@ -337,6 +387,7 @@ def p_var_int(p):
                            'tipo' : 'int',
                            'dir_virtual' : dir_constant(p[1],'ctei')})
 
+# Agregar constante flotante a la pila de operadores.
 def p_var_float(p):
     '''var : CTE_F'''
     global pila_operandos
@@ -352,6 +403,19 @@ def p_var_error(p):
     '''var : error'''
     print("Type Mismatch")
     sys.exit()
+
+def p_push_paren(p):
+    '''push_paren : '''
+    global pila_operadores
+    pila_operadores.append('(')
+
+def p_pop_paren(p):
+    '''pop_paren : '''
+    global pila_operadores
+    top = pila_operadores.pop()
+    if top != '(':
+        print('Error', top) 
+        sys.exit()
 
 def p_push_dim(p):
     '''push_dim : '''
@@ -487,22 +551,7 @@ def p_matriz(p):
             print("Variable %s no declarada." %(id_actual))
             sys.exit()
 
-def p_var_func_call(p):
-    '''var_func_call : lista'''
-
-def p_push_paren(p):
-    '''push_paren : '''
-    global pila_operadores
-    pila_operadores.append('(')
-
-def p_pop_paren(p):
-    '''pop_paren : '''
-    global pila_operadores
-    top = pila_operadores.pop()
-    if top != ')':
-        print('Error') 
-        sys.exit()
-
+# Reglas sintacticas para estatutos y bloques.
 def p_estatuto(p):
     '''estatuto : asignacion
                 | condicion
@@ -512,10 +561,16 @@ def p_estatuto(p):
                 | func_call PUNTCOM
        bloque : BRAIZQ estatutos BRADER '''
 
+# Reglas sintacticas para llamadas de funcion.
 def p_func_call(p):
     '''func_call : ID actualiza_id actualiza_func PARIZQ args gen_era PARDER gen_gosub
-       var_func_call : PARIZQ actualiza_func args gen_era PARDER gen_gosub'''
+       var_func_call : PARIZQ actualiza_func args gen_era PARDER gen_gosub
+       args : expresion asig_par arg
+            |
+       arg : COMA args
+           | '''
 
+# Regla que actualiza la llamad a funcion actual y verifcia que exista en el directorio de funciones.
 def p_actualiza_func(p):
     '''actualiza_func :'''
     global func_call
@@ -526,6 +581,7 @@ def p_actualiza_func(p):
         print("Function %s not defined, functions must be defined before calling them."%(id_actual))
         sys.exit()
 
+# Funcion que genera quadruplo era
 def p_gen_era(p):
     '''gen_era : '''
     global quads
@@ -540,6 +596,7 @@ def p_gen_era(p):
         print("Function", func_actual['func']," not declared")
         sys.exit()
 
+# Funcion que genera quadruplos gosub y param
 def p_gen_gosub(p):
     '''gen_gosub : '''
     global quads
@@ -561,12 +618,7 @@ def p_gen_gosub(p):
                                'tipo' : dir_func[func_actual['func']]['tipo'],
                                'dir_virtual' : retorno})
 
-def p_args(p):
-    '''args : expresion asig_par arg
-            |
-       arg : COMA args
-           | '''
-
+# Funcion para asignar direcciones virtuales a los parametros.
 def p_asig_par(p):
     '''asig_par : '''
     global pila_operandos
@@ -581,7 +633,6 @@ def p_asig_par(p):
     if num_args < tam:
         if pars[tam - num_args - 1]['tipo'] == arg['tipo']:
             func_call[-1]['pars'].append([arg['dir_virtual'], pars[tam - num_args - 1]['dir_virtual']])
-            # quads.genera('param', arg['dir_virtual'], func_actual['func'], pars[tam - num_args - 1]['dir_virtual'])
         else:
             print("Type Mismatch") 
             sys.exit()
@@ -596,7 +647,6 @@ def p_asignacion(p):
     global dir_func
     global pila_operandos
     global asig_input
-
     if asig_input:
         asig_input = False
         tempAsig = pila_operandos.pop()
@@ -629,12 +679,14 @@ def p_condicion(p):
        else_bloque : ELSE inicio_else bloque
                    | '''
 
+# Funcion para rellenar el quadruplo con el fin condicion.
 def p_fin_cond(p):
     '''fin_cond : '''
     global quads
     global pila_saltos
     quads.rellena(pila_saltos.pop())
 
+# Funcion para marcar el inicio de un (else) generando el quadruplo goto.
 def p_inicio_else(p):
     '''inicio_else : '''
     global quads
@@ -644,7 +696,8 @@ def p_inicio_else(p):
     pila_saltos.append(quads.contador - 1)
     quads.rellena(falso)
 
-def p_fin_exp_repeat(p):
+# Funcion para rellenar el fin de expresion con el quadruplo gotof.
+def p_fin_exp(p):
     '''fin_exp : '''
     global quads
     global pila_operandos
@@ -657,15 +710,18 @@ def p_fin_exp_repeat(p):
         print("Type Mismatch") 
         sys.exit()
 
+# Regla sintactica del ciclo.
 def p_ciclo(p):
     '''ciclo : REPEAT push_cont PARIZQ expresion fin_exp PARDER bloque fin_repeat'''
 
+# Funcion para meter el contador actual de quads en la pila de saltos.
 def p_push_cont(p):
     '''push_cont : '''
     global quads
     global pila_saltos
     pila_saltos.append(quads.contador)
 
+# Funcion para marcar el finc de ciclo generando el quadruplo goto.
 def p_fin_repeat(p):
     '''fin_repeat : '''
     global quads
@@ -675,6 +731,7 @@ def p_fin_repeat(p):
     quads.genera('goto', None, None, retorno)
     quads.rellena(fin)
 
+# Reglas sintacticas de escritura.
 def p_escritura(p):
     '''escritura : PRINT PARIZQ arg_escritura PARDER PUNTCOM
        arg_escritura : expresion fin_arg args_escritura
@@ -682,6 +739,7 @@ def p_escritura(p):
        args_escritura : COMA arg_escritura
                       | '''
 
+# Funcion para generar el cuadruplo print con una expresion.
 def p_fin_arg(p):
     '''fin_arg : '''
     global quads
@@ -689,21 +747,13 @@ def p_fin_arg(p):
     val_esp = pila_operandos.pop()
     quads.genera('print', None, None, val_esp['dir_virtual'])
 
+# Funcion para generar el cuadruplo print con una cadena.
 def p_print_string(p):
     '''print_string : '''
     global quads
     quads.genera('print', None, None, p[-1])
 
-def p_tipo(p):
-    '''tipo : INT actualiza_tipo
-            | FLOAT actualiza_tipo'''
-    p[0] = p[1]
-
-def p_actualiza_tipo(p):
-    '''actualiza_tipo : '''
-    global tipo_actual
-    tipo_actual = p[-1]
-
+# Reglas sintacticas para funciones de dibujo.
 def p_instruccion(p):
     '''instruccion : FORWARD actualiza_instr PARIZQ expresion PARDER fin_instr1 PUNTCOM
                    | BACKWARD actualiza_instr PARIZQ expresion PARDER fin_instr1 PUNTCOM
@@ -715,37 +765,42 @@ def p_instruccion(p):
                    | TRIANGLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
                    | SQUARE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
                    | NGON actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
-                   | ARC actualiza_instr PARIZQ expresion PARDER fin_instr1 trans PUNTCOM
+                   | ARC actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
                    | UP actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
                    | DOWN actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
-                   | COLOR actualiza_instr PARIZQ expresion COMA expresion COMA expresion PARDER fin_color PUNTCOM
+                   | COLOR PARIZQ expresion COMA expresion COMA expresion PARDER fin_color PUNTCOM
                    | FILLED_CIRCLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
                    | FILLED_SQUARE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
                    | FILLED_TRIANGLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
                    | FILLED_NGON actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
                    | FILLER_COLOR actualiza_instr PARIZQ expresion COMA expresion COMA expresion PARDER fin_color PUNTCOM
-       fill : PUNTO FILL actualiza_instr PARIZQ PARDER fin_instr
+       fill : FILL actualiza_instr PARIZQ PARDER fin_instr trans
+            | altera trans
        trans : PUNTO altera trans
              | 
        altera : ROTATE actualiza_instr PARIZQ expresion PARDER fin_instr1
               | STRETCH actualiza_instr PARIZQ expresion PARDER fin_instr1'''
 
+# Genera quadruplo dibuja.
 def p_dibuja(p):
-    '''transform : fill trans
+    '''transform : PUNTO fill
                  | '''
     quads.genera("draw", None, None, None)
 
+# Actualiza instruccion de dibujo.
 def p_actualiza_instr(p):
     '''actualiza_instr : '''
     global instr_actual
     instr_actual = p[-1]
 
+# Actualiza instruccion de dibujo.
 def p_fin_instr(p):
     '''fin_instr : '''
     global quads
     global instr_actual
     quads.genera(instr_actual, None, None, None)
 
+# Marcar fin de instruccion con un parametro.
 def p_fin_instr1(p):
     '''fin_instr1 : '''
     global instr_actual
@@ -754,6 +809,7 @@ def p_fin_instr1(p):
     val1 = pila_operandos.pop()
     quads.genera(instr_actual, None, None, val1['dir_virtual'])
 
+# Marcar fin de instruccion con dos parametros.
 def p_fin_instr2(p):
     '''fin_instr2 : '''
     global instr_actual
@@ -763,6 +819,7 @@ def p_fin_instr2(p):
     val1 = pila_operandos.pop()
     quads.genera(instr_actual, None, val1['dir_virtual'], val2['dir_virtual'])
 
+# Marcar fin de instruccion para cambiar el color.
 def p_fin_color(p):
     '''fin_color : '''
     global quads
@@ -770,7 +827,7 @@ def p_fin_color(p):
     val3 = pila_operandos.pop()
     val2 = pila_operandos.pop()
     val1 = pila_operandos.pop()
-    quads.genera(instr_actual, val1['dir_virtual'], val2['dir_virtual'], val3['dir_virtual'])
+    quads.genera('color', val1['dir_virtual'], val2['dir_virtual'], val3['dir_virtual'])
 
 def p_error(p):
     print("Syntax error at token " + str(p.type) + " lineno " + str(p.lineno))

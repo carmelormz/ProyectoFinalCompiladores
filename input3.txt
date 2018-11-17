@@ -1,5 +1,5 @@
-module hello_world;
-import "hello"
+module "hello_world";
+import "hello";
 int i, j;
 void uno(int a){
     int i;

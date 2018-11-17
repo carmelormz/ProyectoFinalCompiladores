@@ -10,16 +10,17 @@ int func2(int x){
 main {
     int i, x;
     a[0][func2(0)] = 4;
-    print(a[0][func2(0)]);
+    print(a[0][func2(0)], "");
     a[func2(1)][1] = a[1][1] + func2(func2(3 + a[0][0])) + func2(3 + a[0][0]);
+    print(a[1][1], "");
     i = 0;
     repeat(i < 10){
         x = i%2;
-        print(x);
+        print(x, "");
         if (x == 0){
-            print("Even");
+            print("Even", "");
         }else{
-            print("Odd");
+            print("Odd", "");
         }
         i = i + 1;
     }

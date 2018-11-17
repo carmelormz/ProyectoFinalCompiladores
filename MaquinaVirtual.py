@@ -5,6 +5,8 @@ import MapaMemoria
 import sys
 import turtle
 import math
+import Shapes
+import imageio
 
 
 dir_func = {}
@@ -12,6 +14,7 @@ quads = []
 stack_pointer = 0
 mem = None
 func_reg = 0
+shape = Shapes.Shape()
 
 def load_constantes(tabla_constantes):
     global mem
@@ -25,7 +28,7 @@ def main():
     global mem
     global func_reg
     dir_func, tabla_constantes, quads, val = parser.parse(str(sys.argv[1]))
-    mem = MapaMemoria.MapaMemoria(val[0], val[1], val[2], val[3], val[4], val[5], 40000)
+    mem = MapaMemoria.MapaMemoria(val[0], val[1], val[2], val[3], val[4], val[5], 80000)
     load_constantes(tabla_constantes)
     '''
     i = 1
@@ -36,40 +39,38 @@ def main():
     '''
     myTurtle = turtle.Turtle(shape="turtle")
     screen = turtle.getscreen()
+    screen.colormode(255)
     fill = False
+    arc = False
     #Function to close Turtle Window
     def close():
         turtle.bye()
     # When clicking SPACE, close Turtle Window
     screen.onkeypress(close, "space")
     screen.listen()
-
     while quads[stack_pointer][0] != 10:
         # print(quads[stack_pointer])
         if quads[stack_pointer][0] == 0:
             # canvas crear una imagen
             width = int(mem.find(quads[stack_pointer][2]))
             height = int(mem.find(quads[stack_pointer][2]))
-            screen.screensize(width,height)
+            screen.setup(width,height)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 1:
             # background color de imagen
             r = int(mem.find(quads[stack_pointer][1]))
             g = int(mem.find(quads[stack_pointer][2]))
             b = int(mem.find(quads[stack_pointer][3]))
-            screen.colormode(255)
             screen.bgcolor(r, g, b)
             screen.update()
             stack_pointer += 1
         elif quads[stack_pointer][0] == 2:
             # import abrir una imagen
-            '''
-            image = quads[stack_pointer][3][1:-1]
-            print(image)
-            screen.setup(720, 1334)
-            screen.bgpic("image.jpg")
-            screen.update()
-            '''
+            image = imageio.imread(quads[stack_pointer][3][1:-1])
+            height, width, _ = image.shape
+            imageio.mimsave('temp.gif', [image])
+            screen.setup(width, height)
+            screen.bgpic('temp.gif')
             stack_pointer += 1
         elif quads[stack_pointer][0] == 3:
             # endproc
@@ -125,10 +126,11 @@ def main():
             stack_pointer += 1
         elif quads[stack_pointer][0] == 13:
             # color cambiar color
-            r = mem.find(quads[stack_pointer][1])
-            g = mem.find(quads[stack_pointer][2])
-            b = mem.find(quads[stack_pointer][3])
+            r = int(mem.find(quads[stack_pointer][1]))
+            g = int(mem.find(quads[stack_pointer][2]))
+            b = int(mem.find(quads[stack_pointer][3]))
             myTurtle.pencolor(r,g,b)
+            myTurtle.fillcolor(r,g,b)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 14:
             # forward
@@ -162,38 +164,34 @@ def main():
             stack_pointer += 1
         elif quads[stack_pointer][0] == 20:
             # circle
-            tamCircle = mem.find(quads[stack_pointer][3])
-            myTurtle.circle(tamCircle)
+            dim = mem.find(quads[stack_pointer][3])
+            shape.gen_points(30)
+            shape.scale(dim)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 21:
             # triangle
-            size = mem.find(quads[stack_pointer][3])
-            for i in range(3):
-                myTurtle.forward(size)
-                myTurtle.left(120)
+            dim = mem.find(quads[stack_pointer][3])
+            shape.gen_points(3)
+            shape.scale(dim)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 22:
             # square
             dim = mem.find(quads[stack_pointer][3])
-            tam_lados = math.sqrt(dim)
-            #dibujar cuadrado
-            for i in range(4):
-                myTurtle.forward(tam_lados)
-                myTurtle.left(90)
-
+            shape.gen_points(4)
+            shape.scale(dim)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 23:
             # ngon
             num_sides = mem.find(quads[stack_pointer][3])
-            angle = 360.0 / num_sides
-            for i in range(num_sides):
-                myTurtle.forward(70)
-                myTurtle.right(angle)
+            shape.gen_points(num_sides)
+            shape.scale(20)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 24:
             # arc
-            radius = mem.find(quads[stack_pointer][3])
-            myTurtle.circle(radius, 180)
+            arc = True
+            dim = mem.find(quads[stack_pointer][3])
+            shape.gen_points(30, arc)
+            shape.scale(dim)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 25:
             # up
@@ -205,16 +203,20 @@ def main():
             stack_pointer += 1
         elif quads[stack_pointer][0] == 27:
             # rotate
+            angle = float(mem.find(quads[stack_pointer][3]))
+            shape.rotate(angle)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 28:
             # stretch
+            dim = float(mem.find(quads[stack_pointer][3]))
+            shape.stretch(dim)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 29:
             # fill
             fill = True
             stack_pointer += 1
         elif quads[stack_pointer][0] == 30:
-            # ||
+            # |
             op1 = mem.find(quads[stack_pointer][1])
             op2 = mem.find(quads[stack_pointer][2])
             if op1 != 0 or op2 != 0:
@@ -223,7 +225,7 @@ def main():
                 mem.insert(quads[stack_pointer][3], 0)
             stack_pointer += 1
         elif quads[stack_pointer][0] == 31:
-            # &&
+            # &
             op1 = mem.find(quads[stack_pointer][1])
             op2 = mem.find(quads[stack_pointer][2])
             if op1 != 0 and op2 != 0:
@@ -345,6 +347,21 @@ def main():
             stack_pointer += 1
         elif quads[stack_pointer][0] == 46:
             # draw
+            myTurtle.pendown()
+            x = turtle.xcor()
+            y = turtle.ycor()
+            if fill:
+                myTurtle.begin_fill()
+            for i in range(len(shape.points[0])):
+                myTurtle.goto(x + shape.points[0][i], y + shape.points[1][i])
+            if arc:
+                arc = False
+            else:
+                myTurtle.goto(x, y)
+            if fill:
+                myTurtle.end_fill()
+            fill = False
+            shape.points = []
             stack_pointer += 1
         elif quads[stack_pointer][0] == 47:
             #Circulo Relleno

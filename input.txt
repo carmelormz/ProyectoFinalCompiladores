@@ -1,15 +1,24 @@
 module "hello_world.jpg";
-canvas {
-    width 1080;
-    height 720;
-    background 0, 250, 0;
-}
+import "image.jpg";
 
 main {
-    up();
-    circle(10).fill().rotate(56);
-    arc(15).rotate(5).stretch(56);
-    down();
-    ngon(50);
+    # 
+        up();
+        circle(10).fill().rotate(56).stretch(2);
+        color(255,255,255);
+        arc(20).fill().stretch(3);
+        ngon(5).rotate(56).stretch(2); 
+    #
+    int x;
+    x = -42;
+    circle(10).fill().stretch(2).rotate(56);
+    print((-1 * (x)) * -1, "");
+    print((9 + 1 > (11 - 6 + (43))));
+    #   
+        arc(15).rotate(5).stretch(56);
+        down();
+     
+        ngon(50);
+    #
     return;
 }
