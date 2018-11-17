@@ -718,7 +718,12 @@ def p_instruccion(p):
                    | ARC actualiza_instr PARIZQ expresion PARDER fin_instr1 trans PUNTCOM
                    | UP actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
                    | DOWN actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
-                   | COLOR PARIZQ expresion COMA expresion COMA expresion PARDER fin_color PUNTCOM
+                   | COLOR actualiza_instr PARIZQ expresion COMA expresion COMA expresion PARDER fin_color PUNTCOM
+                   | FILLED_CIRCLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
+                   | FILLED_SQUARE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
+                   | FILLED_TRIANGLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
+                   | FILLED_NGON actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
+                   | FILLER_COLOR actualiza_instr PARIZQ expresion COMA expresion COMA expresion PARDER fin_color PUNTCOM
        fill : PUNTO FILL actualiza_instr PARIZQ PARDER fin_instr
        trans : PUNTO altera trans
              | 
@@ -765,7 +770,7 @@ def p_fin_color(p):
     val3 = pila_operandos.pop()
     val2 = pila_operandos.pop()
     val1 = pila_operandos.pop()
-    quads.genera('colr', val1['dir_virtual'], val2['dir_virtual'], val3['dir_virtual'])
+    quads.genera(instr_actual, val1['dir_virtual'], val2['dir_virtual'], val3['dir_virtual'])
 
 def p_error(p):
     print("Syntax error at token " + str(p.type) + " lineno " + str(p.lineno))

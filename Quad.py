@@ -26,7 +26,7 @@ class Quad:
                                   'endproc' : 3, 'return' : 4, 'ver' : 5,
                                   'goto' : 6, 'era' : 7, 'gosub' : 8,
                                   'param' : 9, 'end' : 10, 'gotof' : 11,
-                                  'print' : 12, 'colr' : 13, 'forward' : 14,
+                                  'print' : 12, 'color' : 13, 'forward' : 14,
                                   'backward' : 15, 'left' : 16, 'right' : 17,
                                   'turn' : 18, 'size' : 19, 'circle' : 20,
                                   'triangle' : 21, 'square' : 22, 'ngon' : 23,
@@ -37,7 +37,8 @@ class Quad:
                                   '<=' : 36, '>=' : 37, '+' : 38,
                                   '-' : 39, '*' : 40, '/' : 41,
                                   '=' : 42, '%' : 43, 'input' : 44,
-                                  'module': 45, 'draw' : 46}
+                                  'module': 45, 'draw' : 46, 'filledCircle' : 47, 'filledSquare' : 48,
+                                  'filledTriangle' : 49, 'filledNgon' : 50, 'fillerColor' : 51}
     def genera(self, operador, op_izq, op_der, res):
         operacion = self.codigos_operacion[operador]
         # operacion = operador

@@ -346,6 +346,50 @@ def main():
         elif quads[stack_pointer][0] == 46:
             # draw
             stack_pointer += 1
+        elif quads[stack_pointer][0] == 47:
+            #Circulo Relleno
+            radius = mem.find(quads[stack_pointer][3])
+            myTurtle.begin_fill()
+            myTurtle.circle(radius)
+            myTurtle.end_fill()
+
+            stack_pointer += 1
+        elif quads[stack_pointer][0] == 48:
+            #Cuadrado Relleno
+            radius = mem.find(quads[stack_pointer][3])
+            tam_lados = math.sqrt(dim)
+            tam_lados *= 10
+            myTurtle.begin_fill()
+            for i in range(4):
+                myTurtle.forward(tam_lados)
+                myTurtle.left(90)
+            myTurtle.end_fill()
+            stack_pointer += 1
+        elif quads[stack_pointer][0] == 49:
+            #Triangulo Relleno
+            size = mem.find(quads[stack_pointer][3])
+            myTurtle.begin_fill()
+            for i in range(3):
+                myTurtle.forward(size)
+                myTurtle.left(120)
+            myTurtle.end_fill()
+            stack_pointer += 1
+        elif quads[stack_pointer][0] == 50:
+            #Ngon Relleno
+            num_sides = mem.find(quads[stack_pointer][3])
+            angle = 360.0 / num_sides
+            myTurtle.begin_fill()
+            for i in range(num_sides):
+                myTurtle.forward(70)
+                myTurtle.right(angle)
+            myTurtle.end_fill()
+            stack_pointer += 1
+        elif quads[stack_pointer][0] == 51:
+            r = mem.find(quads[stack_pointer][1])
+            g = mem.find(quads[stack_pointer][2])
+            b = mem.find(quads[stack_pointer][3])
+            myTurtle.fillcolor(r,g,b)
+            stack_pointer += 1
         else:
             print(quads[stack_pointer])
             print('Error')

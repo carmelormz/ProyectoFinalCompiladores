@@ -1,7 +1,15 @@
-module hello_world;
-import "hello"
+module "hello_world.jpg";
+
+canvas {
+    width 1080;
+    height 720;
+    background 0, 250, 0;
+}
 main {
     color(255,035,001);
     triangle(100);
+    forward(100);
+    fillerColor(255,255,1);
+    filledTriangle(50);
     return;
 }

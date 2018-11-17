@@ -71,7 +71,12 @@ palabrasReservadas = {
     'size' : 'SIZE',
     'int' : 'INT',
     'float' : 'FLOAT',
-    'void' : 'VOID'
+    'void' : 'VOID',
+    'filledCircle' : 'FILLED_CIRCLE',
+    'filledSquare' : 'FILLED_SQUARE',
+    'filledTriangle' : 'FILLED_TRIANGLE',
+    'filledNgon' : 'FILLED_NGON',
+    'fillerColor' : 'FILLER_COLOR'
 }
 
 
