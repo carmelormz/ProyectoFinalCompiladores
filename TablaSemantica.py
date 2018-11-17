@@ -94,13 +94,31 @@ class TablaSemantica:
         self.llenar('None', 'int', '-', 'int')
         self.llenar('None', 'float', '+', 'float')
         self.llenar('None', 'float', '-', 'float')
-
+    '''
+        llenar()
+            Metodo para llenar un valor en la tabla semantica.
+        Parametros:
+            opd1, el primer operando
+            opd2, el segundo operando
+            op, el operador
+        Retorno:
+            Nada
+    '''
     def llenar(self, operando1, operando2, operador, tipo):
         opd1 = self.operandos[operando1]
         opd2 = self.operandos[operando2]
         op = self.operadores[operador]
         self.tabla_semantica[opd1][opd2][op] = tipo
-    
+    '''
+        tipo()
+            Metodo para verificar el tipo de una operacion.
+        Parametros:
+            opd1, el primer operando
+            opd2, el segundo operando
+            op, el operador
+        Retorno:
+            el tipo resultante
+    '''
     def tipo(self, operando1, operando2, operador):
         opd1 = self.operandos[operando1]
         opd2 = self.operandos[operando2]

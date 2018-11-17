@@ -1,17 +1,16 @@
 # Proyecto Final - Compiladores
 # Autores: Carmelo Ramirez (A01175987) y Juan Pablo Galaz (A01251406)
-import ProyectoFinal_Yacc as parser
-import MapaMemoria
+import imageio
+import math
 import sys
 import turtle
-import math
+import MapaMemoria
+import ProyectoFinal_Yacc as parser
 import Shapes
-import imageio
-
 
 dir_func = {}
 quads = []
-stack_pointer = 0
+instruction_pointer = 0
 mem = None
 func_reg = 0
 shape = Shapes.Shape()
@@ -24,19 +23,12 @@ def load_constantes(tabla_constantes):
 def main():
     global dir_func
     global quads
-    global stack_pointer
+    global instruction_pointer
     global mem
     global func_reg
     dir_func, tabla_constantes, quads, val = parser.parse(str(sys.argv[1]))
     mem = MapaMemoria.MapaMemoria(val[0], val[1], val[2], val[3], val[4], val[5], 80000)
     load_constantes(tabla_constantes)
-    '''
-    i = 1
-    for q in quads:
-        print(i, q)
-        i += 1
-    print('---------------------------------')
-    '''
     myTurtle = turtle.Turtle(shape="turtle")
     screen = turtle.getscreen()
     screen.colormode(255)
@@ -45,74 +37,74 @@ def main():
     #Function to close Turtle Window
     def close():
         turtle.bye()
+        sys.exit()
     # When clicking SPACE, close Turtle Window
     screen.onkeypress(close, "space")
     screen.listen()
-    while quads[stack_pointer][0] != 10:
-        # print(quads[stack_pointer])
-        if quads[stack_pointer][0] == 0:
+    while quads[instruction_pointer][0] != 10:
+        if quads[instruction_pointer][0] == 0:
             # canvas crear una imagen
-            width = int(mem.find(quads[stack_pointer][2]))
-            height = int(mem.find(quads[stack_pointer][2]))
+            width = int(mem.find(quads[instruction_pointer][2]))
+            height = int(mem.find(quads[instruction_pointer][2]))
             screen.setup(width,height)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 1:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 1:
             # background color de imagen
-            r = int(mem.find(quads[stack_pointer][1]))
-            g = int(mem.find(quads[stack_pointer][2]))
-            b = int(mem.find(quads[stack_pointer][3]))
+            r = int(mem.find(quads[instruction_pointer][1]))
+            g = int(mem.find(quads[instruction_pointer][2]))
+            b = int(mem.find(quads[instruction_pointer][3]))
             screen.bgcolor(r, g, b)
             screen.update()
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 2:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 2:
             # import abrir una imagen
-            image = imageio.imread(quads[stack_pointer][3][1:-1])
+            image = imageio.imread(quads[instruction_pointer][3][1:-1])
             height, width, _ = image.shape
             imageio.mimsave('temp.gif', [image])
             screen.setup(width, height)
             screen.bgpic('temp.gif')
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 3:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 3:
             # endproc
-            stack_pointer = mem.endproc()
-        elif quads[stack_pointer][0] == 4:
+            instruction_pointer = mem.endproc()
+        elif quads[instruction_pointer][0] == 4:
             # return
-            func_reg = mem.find(quads[stack_pointer][3])
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 5:
+            func_reg = mem.find(quads[instruction_pointer][3])
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 5:
             # ver
-            index = mem.find(quads[stack_pointer][1])
-            li = mem.find(quads[stack_pointer][2])
-            ls = mem.find(quads[stack_pointer][3])
+            index = mem.find(quads[instruction_pointer][1])
+            li = mem.find(quads[instruction_pointer][2])
+            ls = mem.find(quads[instruction_pointer][3])
             if index < li or index > ls:
                 print("Out of index")
                 sys.exit()
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 6:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 6:
             # goto 
-            stack_pointer = quads[stack_pointer][3] - 1
-        elif quads[stack_pointer][0] == 7:
+            instruction_pointer = quads[instruction_pointer][3] - 1
+        elif quads[instruction_pointer][0] == 7:
             # era
-            mem.era(quads[stack_pointer][3])
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 8:
+            mem.era(quads[instruction_pointer][3])
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 8:
             # gosub
-            mem.gosub(stack_pointer)
-            stack_pointer = quads[stack_pointer][3] - 1
-        elif quads[stack_pointer][0] == 9:
+            mem.gosub(instruction_pointer)
+            instruction_pointer = quads[instruction_pointer][3] - 1
+        elif quads[instruction_pointer][0] == 9:
             # param
-            mem.param(mem.find(quads[stack_pointer][1]), quads[stack_pointer][3])
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 11:
+            mem.param(mem.find(quads[instruction_pointer][1]), quads[instruction_pointer][3])
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 11:
             # gotof
-            val = mem.find(quads[stack_pointer][1])
+            val = mem.find(quads[instruction_pointer][1])
             if val == 0:
-                stack_pointer = quads[stack_pointer][3] - 1
+                instruction_pointer = quads[instruction_pointer][3] - 1
             else:
-                stack_pointer += 1
-        elif quads[stack_pointer][0] == 12:
+                instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 12:
             # print
-            opdo = quads[stack_pointer][3]
+            opdo = quads[instruction_pointer][3]
             if type(opdo) is str:
                 if opdo[0] == '~':
                     print(mem.find(opdo), end='')            
@@ -123,215 +115,216 @@ def main():
                         print(opdo[1:-1], end='')
             else:
                 print(mem.find(opdo), end='')
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 13:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 13:
             # color cambiar color
-            r = int(mem.find(quads[stack_pointer][1]))
-            g = int(mem.find(quads[stack_pointer][2]))
-            b = int(mem.find(quads[stack_pointer][3]))
+            r = int(mem.find(quads[instruction_pointer][1]))
+            g = int(mem.find(quads[instruction_pointer][2]))
+            b = int(mem.find(quads[instruction_pointer][3]))
             myTurtle.pencolor(r,g,b)
             myTurtle.fillcolor(r,g,b)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 14:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 14:
             # forward
-            dist = mem.find(quads[stack_pointer][3])
+            dist = mem.find(quads[instruction_pointer][3])
             myTurtle.forward(dist)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 15:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 15:
             # backward
-            dist = mem.find(quads[stack_pointer][3])
+            dist = mem.find(quads[instruction_pointer][3])
             myTurtle.backward(dist)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 16:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 16:
             # left
-            angulo = mem.find(quads[stack_pointer][3])
+            angulo = mem.find(quads[instruction_pointer][3])
             myTurtle.left(angulo)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 17:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 17:
             # right
-            angulo = mem.find(quads[stack_pointer][3])
+            angulo = mem.find(quads[instruction_pointer][3])
             myTurtle.right(angulo)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 18:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 18:
             # turn
-            angulo = mem.find(quads[stack_pointer][3])
+            angulo = mem.find(quads[instruction_pointer][3])
             myTurtle.right(angulo)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 19:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 19:
             # size
-            tam = mem.find(quads[stack_pointer][3])
+            tam = mem.find(quads[instruction_pointer][3])
             myTurtle.pensize(tam)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 20:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 20:
             # circle
-            dim = mem.find(quads[stack_pointer][3])
+            dim = mem.find(quads[instruction_pointer][3])
             shape.gen_points(30)
             shape.scale(dim)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 21:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 21:
             # triangle
-            dim = mem.find(quads[stack_pointer][3])
+            dim = mem.find(quads[instruction_pointer][3])
             shape.gen_points(3)
             shape.scale(dim)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 22:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 22:
             # square
-            dim = mem.find(quads[stack_pointer][3])
+            dim = mem.find(quads[instruction_pointer][3])
             shape.gen_points(4)
             shape.scale(dim)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 23:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 23:
             # ngon
-            num_sides = mem.find(quads[stack_pointer][3])
+            num_sides = mem.find(quads[instruction_pointer][2])
+            dim = mem.find(quads[instruction_pointer][3])
             shape.gen_points(num_sides)
-            shape.scale(20)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 24:
+            shape.scale(dim)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 24:
             # arc
             arc = True
-            dim = mem.find(quads[stack_pointer][3])
+            dim = mem.find(quads[instruction_pointer][3])
             shape.gen_points(30, arc)
             shape.scale(dim)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 25:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 25:
             # up
             myTurtle.penup()
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 26:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 26:
             # down
             myTurtle.pendown()
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 27:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 27:
             # rotate
-            angle = float(mem.find(quads[stack_pointer][3]))
+            angle = float(mem.find(quads[instruction_pointer][3]))
             shape.rotate(angle)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 28:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 28:
             # stretch
-            dim = float(mem.find(quads[stack_pointer][3]))
+            dim = float(mem.find(quads[instruction_pointer][3]))
             shape.stretch(dim)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 29:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 29:
             # fill
             fill = True
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 30:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 30:
             # |
-            op1 = mem.find(quads[stack_pointer][1])
-            op2 = mem.find(quads[stack_pointer][2])
+            op1 = mem.find(quads[instruction_pointer][1])
+            op2 = mem.find(quads[instruction_pointer][2])
             if op1 != 0 or op2 != 0:
-                mem.insert(quads[stack_pointer][3], 1)
+                mem.insert(quads[instruction_pointer][3], 1)
             else:
-                mem.insert(quads[stack_pointer][3], 0)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 31:
+                mem.insert(quads[instruction_pointer][3], 0)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 31:
             # &
-            op1 = mem.find(quads[stack_pointer][1])
-            op2 = mem.find(quads[stack_pointer][2])
+            op1 = mem.find(quads[instruction_pointer][1])
+            op2 = mem.find(quads[instruction_pointer][2])
             if op1 != 0 and op2 != 0:
-                mem.insert(quads[stack_pointer][3], 1)
+                mem.insert(quads[instruction_pointer][3], 1)
             else:
-                mem.insert(quads[stack_pointer][3], 0)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 32:
+                mem.insert(quads[instruction_pointer][3], 0)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 32:
             # !=
-            op1 = mem.find(quads[stack_pointer][1])
-            op2 = mem.find(quads[stack_pointer][2])
+            op1 = mem.find(quads[instruction_pointer][1])
+            op2 = mem.find(quads[instruction_pointer][2])
             if op1 != op2:
-                mem.insert(quads[stack_pointer][3], 1)
+                mem.insert(quads[instruction_pointer][3], 1)
             else:
-                mem.insert(quads[stack_pointer][3], 0)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 33:
+                mem.insert(quads[instruction_pointer][3], 0)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 33:
             # <
-            op1 = mem.find(quads[stack_pointer][1])
-            op2 = mem.find(quads[stack_pointer][2])
+            op1 = mem.find(quads[instruction_pointer][1])
+            op2 = mem.find(quads[instruction_pointer][2])
             if op1 < op2:
-                mem.insert(quads[stack_pointer][3], 1)
+                mem.insert(quads[instruction_pointer][3], 1)
             else:
-                mem.insert(quads[stack_pointer][3], 0)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 34:
+                mem.insert(quads[instruction_pointer][3], 0)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 34:
             # > 
-            op1 = mem.find(quads[stack_pointer][1])
-            op2 = mem.find(quads[stack_pointer][2])
+            op1 = mem.find(quads[instruction_pointer][1])
+            op2 = mem.find(quads[instruction_pointer][2])
             if op1 > op2:
-                mem.insert(quads[stack_pointer][3], 1)
+                mem.insert(quads[instruction_pointer][3], 1)
             else:
-                mem.insert(quads[stack_pointer][3], 0)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 35:
+                mem.insert(quads[instruction_pointer][3], 0)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 35:
             # ==
-            op1 = mem.find(quads[stack_pointer][1])
-            op2 = mem.find(quads[stack_pointer][2])
+            op1 = mem.find(quads[instruction_pointer][1])
+            op2 = mem.find(quads[instruction_pointer][2])
             if op1 == op2:
-                mem.insert(quads[stack_pointer][3], 1)
+                mem.insert(quads[instruction_pointer][3], 1)
             else:
-                mem.insert(quads[stack_pointer][3], 0)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 36:
+                mem.insert(quads[instruction_pointer][3], 0)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 36:
             # <=
-            op1 = mem.find(quads[stack_pointer][1])
-            op2 = mem.find(quads[stack_pointer][2])
+            op1 = mem.find(quads[instruction_pointer][1])
+            op2 = mem.find(quads[instruction_pointer][2])
             if op1 <= op2:
-                mem.insert(quads[stack_pointer][3], 1)
+                mem.insert(quads[instruction_pointer][3], 1)
             else:
-                mem.insert(quads[stack_pointer][3], 0)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 37:
+                mem.insert(quads[instruction_pointer][3], 0)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 37:
             # >=
-            op1 = mem.find(quads[stack_pointer][1])
-            op2 = mem.find(quads[stack_pointer][2])
+            op1 = mem.find(quads[instruction_pointer][1])
+            op2 = mem.find(quads[instruction_pointer][2])
             if op1 >= op2:
-                mem.insert(quads[stack_pointer][3], 1)
+                mem.insert(quads[instruction_pointer][3], 1)
             else:
-                mem.insert(quads[stack_pointer][3], 0)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 38:
+                mem.insert(quads[instruction_pointer][3], 0)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 38:
             # +
-            op1 = mem.find(quads[stack_pointer][1])
-            op2 = mem.find(quads[stack_pointer][2])
-            mem.insert(quads[stack_pointer][3], op1 + op2)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 39:
+            op1 = mem.find(quads[instruction_pointer][1])
+            op2 = mem.find(quads[instruction_pointer][2])
+            mem.insert(quads[instruction_pointer][3], op1 + op2)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 39:
             # -
-            op1 = mem.find(quads[stack_pointer][1])
-            op2 = mem.find(quads[stack_pointer][2])
-            mem.insert(quads[stack_pointer][3], op1 - op2)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 40:
+            op1 = mem.find(quads[instruction_pointer][1])
+            op2 = mem.find(quads[instruction_pointer][2])
+            mem.insert(quads[instruction_pointer][3], op1 - op2)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 40:
             # *
-            op1 = mem.find(quads[stack_pointer][1])
-            op2 = mem.find(quads[stack_pointer][2])
-            mem.insert(quads[stack_pointer][3], op1 * op2)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 41:
+            op1 = mem.find(quads[instruction_pointer][1])
+            op2 = mem.find(quads[instruction_pointer][2])
+            mem.insert(quads[instruction_pointer][3], op1 * op2)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 41:
             # /
-            op1 = mem.find(quads[stack_pointer][1])
-            op2 = mem.find(quads[stack_pointer][2])
+            op1 = mem.find(quads[instruction_pointer][1])
+            op2 = mem.find(quads[instruction_pointer][2])
             if op2 == 0:
                 print('Division by zero')
                 sys.exit()
-            mem.insert(quads[stack_pointer][3], op1/op2)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 42:
+            mem.insert(quads[instruction_pointer][3], op1/op2)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 42:
             # =
-            if quads[stack_pointer][1] == None:
-                mem.insert(quads[stack_pointer][3], func_reg)
+            if quads[instruction_pointer][1] == None:
+                mem.insert(quads[instruction_pointer][3], func_reg)
             else:
-                op1 = mem.find(quads[stack_pointer][1])
-                mem.insert(quads[stack_pointer][3], op1)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 43:
+                op1 = mem.find(quads[instruction_pointer][1])
+                mem.insert(quads[instruction_pointer][3], op1)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 43:
             # %
-            op1 = mem.find(quads[stack_pointer][1])
-            op2 = mem.find(quads[stack_pointer][2])
+            op1 = mem.find(quads[instruction_pointer][1])
+            op2 = mem.find(quads[instruction_pointer][2])
             if op2 == 0:
                 print('Division by zero')
                 sys.exit()
-            mem.insert(quads[stack_pointer][3], op1%op2)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 44:
+            mem.insert(quads[instruction_pointer][3], op1%op2)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 44:
             # input
             op1 = input()
             try:
@@ -339,17 +332,17 @@ def main():
             except ValueError:
                 print("Inputs must be numeric")
                 sys.exit()
-            mem.insert(quads[stack_pointer][3], op1)
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 45:
+            mem.insert(quads[instruction_pointer][3], op1)
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 45:
             # module
-            screen.title(quads[stack_pointer][3][1:-1])
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 46:
+            screen.title(quads[instruction_pointer][3][1:-1])
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 46:
             # draw
             myTurtle.pendown()
-            x = turtle.xcor()
-            y = turtle.ycor()
+            x = myTurtle.xcor()
+            y = myTurtle.ycor()
             if fill:
                 myTurtle.begin_fill()
             for i in range(len(shape.points[0])):
@@ -362,18 +355,17 @@ def main():
                 myTurtle.end_fill()
             fill = False
             shape.points = []
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 47:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 47:
             #Circulo Relleno
-            radius = mem.find(quads[stack_pointer][3])
+            radius = mem.find(quads[instruction_pointer][3])
             myTurtle.begin_fill()
             myTurtle.circle(radius)
             myTurtle.end_fill()
-
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 48:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 48:
             #Cuadrado Relleno
-            radius = mem.find(quads[stack_pointer][3])
+            radius = mem.find(quads[instruction_pointer][3])
             tam_lados = math.sqrt(dim)
             tam_lados *= 10
             myTurtle.begin_fill()
@@ -381,42 +373,38 @@ def main():
                 myTurtle.forward(tam_lados)
                 myTurtle.left(90)
             myTurtle.end_fill()
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 49:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 49:
             #Triangulo Relleno
-            size = mem.find(quads[stack_pointer][3])
+            size = mem.find(quads[instruction_pointer][3])
             myTurtle.begin_fill()
             for i in range(3):
                 myTurtle.forward(size)
                 myTurtle.left(120)
             myTurtle.end_fill()
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 50:
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 50:
             #Ngon Relleno
-            num_sides = mem.find(quads[stack_pointer][3])
+            num_sides = mem.find(quads[instruction_pointer][3])
             angle = 360.0 / num_sides
             myTurtle.begin_fill()
             for i in range(num_sides):
                 myTurtle.forward(70)
                 myTurtle.right(angle)
             myTurtle.end_fill()
-            stack_pointer += 1
-        elif quads[stack_pointer][0] == 51:
-            r = mem.find(quads[stack_pointer][1])
-            g = mem.find(quads[stack_pointer][2])
-            b = mem.find(quads[stack_pointer][3])
+            instruction_pointer += 1
+        elif quads[instruction_pointer][0] == 51:
+            r = mem.find(quads[instruction_pointer][1])
+            g = mem.find(quads[instruction_pointer][2])
+            b = mem.find(quads[instruction_pointer][3])
             myTurtle.fillcolor(r,g,b)
-            stack_pointer += 1
+            instruction_pointer += 1
         else:
-            print(quads[stack_pointer])
+            print(quads[instruction_pointer])
             print('Error')
             sys.exit()
-    # print(quads[stack_pointer])
-    # print(mem.mapa_memoria)
-
     #INICIA APLICACION TURTLE
     screen._root.mainloop()
-   # screen.getcanvas().postscript(file="temp.ps")
 
 if __name__ == '__main__':
     main()

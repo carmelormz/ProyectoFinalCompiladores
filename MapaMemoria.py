@@ -1,10 +1,41 @@
 # Proyecto Final - Compiladores
 # Autores: Carmelo Ramirez (A01175987) y Juan Pablo Galaz (A01251406)
 # Mapa de memoria de el compilador
-
 import sys
+'''
+    Clase MapaMemoria
+        Clase que simula la pila de ejecucion.
+    Variables:
+        mapa_memoria, el mapa de memoria
+        call_stack, pila para llamadas a funcion
+        stack_pos, direccion de memoria en donde esta la pila 
+        init_pos, posicion inicial del heap
+    Metodos:
+        __init__()
+        era()
+        param()
+        gosub()
+        endproc()
+        expand()
+        find(s)
+        insert()
 
+'''
 class MapaMemoria:
+    '''
+        __init__()
+            Constructor inicial que inicializa el mapa de memoria.
+        Parametros:
+            dirBase, direccion base de la pila
+            entero, numero de enteros
+            flotante, numero de flotantes
+            tmp, numero de temporales
+            ptr, numero de apuntadores
+            cte, numero de constantes
+            stack, direccion base del heap (crece hacia dirBase)
+        Retorno:
+            Nada
+    '''
     def __init__(self, dirBase, entero, flotante, tmp, ptr, cte, stack):
         self.gI = dirBase
         self.gF = self.gI + entero
@@ -34,7 +65,15 @@ class MapaMemoria:
             self.lPI : [],
             self.lPF : []
         }
-    
+    '''
+        era()
+            Metodo para generar memoria necesaria para una llamada a funcion,
+            empieza el cambio de contexto.
+        Parametros:
+            num_pars, numero de parametro en la funcion.
+        Retorno:
+            Nada
+    '''
     def era(self, num_pars):
         tam = (len(self.mapa_memoria[self.lI])
                + len(self.mapa_memoria[self.lF])
@@ -44,6 +83,7 @@ class MapaMemoria:
                + len(self.mapa_memoria[self.lPF])
                + 1 + num_pars)
         if self.stack_pos - tam > self.lim:
+            # guardar el contexto en la pila de llamadas
             contexto = {
                         self.lI : self.mapa_memoria[self.lI].copy(),
                         self.lF : self.mapa_memoria[self.lF].copy(),
@@ -60,11 +100,25 @@ class MapaMemoria:
         else:
             print("Stack Overflow")
             sys.exit()
-
+    '''
+        param()
+            Metodo para mapear un valor a su nueva direccion dentro de la funcion.
+        Parametros:
+            val, el valor
+            mem, la direccion de memoria
+        Retorno:
+            Nada
+    '''
     def param(self, val, mem):
         self.call_stack[-1]['pars'][mem] = val
-        # print(self.call_stack[-1])
-
+    '''
+        gosub()
+            Metodo para dirigirse a la funcion, y terminar el cambio de contexto.
+        Parametros:
+            instuction_pointer, el instuction point
+        Retorno:
+            Nada
+    '''
     def gosub(self, instuction_pointer):
         self.call_stack[-1]['ip'] = instuction_pointer + 1
         self.mapa_memoria[self.lI] = []
@@ -75,7 +129,14 @@ class MapaMemoria:
         self.mapa_memoria[self.lPF] = []
         for direccion in self.call_stack[-1]['pars']:
             self.insert(direccion, self.call_stack[-1]['pars'][direccion])
-    
+    '''
+        endproc()
+            Metodo para salir de funcion, y cambiar el contexto.
+        Parametros:
+            instuction_pointer, el instuction point
+        Retorno:
+            Nada
+    '''
     def endproc(self):
         contexto = self.call_stack.pop()
         self.mapa_memoria[self.lI] = contexto[self.lI].copy()
@@ -86,13 +147,28 @@ class MapaMemoria:
         self.mapa_memoria[self.lPF] = contexto[self.lPF].copy()
         self.stack_pos +=  contexto['tam']
         return contexto['ip']
-
+    '''
+        expand()
+            Metodo para crecer el arreglo de un tipo.
+        Parametros:
+            context, tipo de variable
+            index, indice de la nueva variable
+        Retorno:
+            Nada
+    '''
     def expand(self, context, index):
         length = len(self.mapa_memoria[context])
         n = index - length + 1
         if n > 0:
             self.mapa_memoria[context].extend([0] * n)
-    
+    '''
+        find()
+            Metodo para encontrar un valor dado la direccion de memoria.
+        Parametros:
+            direccion, la direccion de memoria
+        Retorno:
+            Nada
+    '''
     def find(self, direccion):
         val = None
         if type(direccion) is str:
@@ -143,7 +219,15 @@ class MapaMemoria:
             print("Memory Error")
             sys.exit()
         return val
-
+    '''
+        insert()
+            Metodo para insertar un valor en una direccion de memoria.
+        Parametros:
+            direccion, la direccion de memoria
+            variable, el valor
+        Retorno:
+            Nada
+    '''
     def insert(self, direccion, variable):
         if type(direccion) is str:
             # deref de apuntador

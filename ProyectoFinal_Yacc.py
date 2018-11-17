@@ -32,7 +32,9 @@ id_actual = ""
 instr_actual =""
 # Num args, el numero de argumentos en la llamada de funcion
 num_args = 0
+# Asignacion es expresion o input
 asig_input = False
+# Operador uanrio menos
 negativo = False
 # Tabla Semantica para Resolver el tipo de una operacion
 tabla_semantica = tb.TablaSemantica()
@@ -764,7 +766,7 @@ def p_instruccion(p):
                    | CIRCLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
                    | TRIANGLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
                    | SQUARE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
-                   | NGON actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
+                   | NGON actualiza_instr PARIZQ expresion COMA expresion PARDER fin_instr2 transform PUNTCOM
                    | ARC actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
                    | UP actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
                    | DOWN actualiza_instr PARIZQ PARDER fin_instr PUNTCOM

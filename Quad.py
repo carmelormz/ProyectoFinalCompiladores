@@ -9,6 +9,7 @@
     Metodos:
         __init__()
         genera()
+        rellena()
 '''
 class Quad:
     '''
@@ -39,10 +40,29 @@ class Quad:
                                   '=' : 42, '%' : 43, 'input' : 44,
                                   'module': 45, 'draw' : 46, 'filledCircle' : 47, 'filledSquare' : 48,
                                   'filledTriangle' : 49, 'filledNgon' : 50, 'fillerColor' : 51}
+    '''
+        genera()
+            Metodo para generar un cuadruplo.
+        Parametros:
+            operador, el operador
+            opd1, el primer operando
+            opd2, el segundo operando
+            res, el resultado
+        Retorno:
+            Nada
+    '''
     def genera(self, operador, op_izq, op_der, res):
         operacion = self.codigos_operacion[operador]
         # operacion = operador
         self.quads.append([operacion, op_izq, op_der, res])
         self.contador += 1
+    '''
+        rellena()
+            Metodo para rellenar el ultimo valor de un cuadruplo, con el contador.
+        Parametros:
+            val, direccion del cuadruplo
+        Retorno:
+            Nada
+    '''
     def rellena(self, val):
         self.quads[val - 1][3] = self.contador

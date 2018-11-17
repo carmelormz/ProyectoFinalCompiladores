@@ -189,7 +189,7 @@ main{
         print("Enter an integer to its factorial : ");
         fact = input();
         print("", "Factorial ", 3," = ", fact_r(fact), "");
-    #
+    # 
     # Code for nth fibonacci #
     #
         print("Enter an integer to find the nth fibonacci number : ");

@@ -1,15 +1,17 @@
 module "hello_world.jpg";
-
 canvas {
     width 1080;
     height 720;
-    background 0, 250, 0;
+    background 0, 0, 0;
 }
 main {
-    color(255,035,001);
-    triangle(100);
-    forward(100);
-    fillerColor(255,255,1);
-    filledTriangle(50);
+    int i;
+    i = 3;
+    repeat(i <= 30){
+        color(255 - i*7, 0 + i*7, 255/i);
+        ngon(i, -10).rotate(i).stretch(2);
+        i = i + 1;
+    }
+    color(255, 255, 255);
     return;
 }
