@@ -36,11 +36,12 @@ int fib_i(int n){
 
 void matmult(){
     int A[2][2], B[2][2], C[2][2];
-    int i, j, k;
+    int i, j, k, tam;
+    tam = 2;
     i = 0;
-    repeat (i < 2){
+    repeat (i < tam){
         j = 0;
-        repeat (j < 2){
+        repeat (j < tam){
             A[i][j] = i + j;
             B[i][j] = i - j;
             C[i][j] = 0;
@@ -49,11 +50,11 @@ void matmult(){
         i = i + 1;
     }
     i = 0;
-    repeat (i < 2){
+    repeat (i < tam){
         j = 0;
         repeat (j < 2){
             k = 0;
-            repeat (k < 2){
+            repeat (k < tam){
                 C[i][j] = C[i][j] + A[i][k]*B[k][j];
                 k = k + 1;
             }
@@ -63,9 +64,9 @@ void matmult(){
     }
     print("A", "");
     i = 0;
-    repeat (i < 2){
+    repeat (i < tam){
         j = 0;
-        repeat (j < 2){
+        repeat (j < tam){
             print(A[i][j], " ");
             j = j + 1;
         }
@@ -74,9 +75,9 @@ void matmult(){
     }
     print("", "B", "");
     i = 0;
-    repeat (i < 2){
+    repeat (i < tam){
         j = 0;
-        repeat (j < 2){
+        repeat (j < tam){
             print(B[i][j], " ");
             j = j + 1;
         }
@@ -85,9 +86,9 @@ void matmult(){
     }
     print("", "C", "");
     i = 0;
-    repeat (i < 2){
+    repeat (i < tam){
         j = 0;
-        repeat (j < 2){
+        repeat (j < tam){
             print(C[i][j], " ");
             j = j + 1;
         }
@@ -199,8 +200,8 @@ main{
     ##
         print("Enter an integer to find its factorial : ");
         fact = input();
-        print("", "Recursive Factorial ", 3," = ", fact_r(fact), "");
-        print("", "Iterative Factorial ", 3," = ", fact_i(fact), "");
+        print("", "Recursive Factorial ", fact," = ", fact_r(fact), "");
+        print("", "Iterative Factorial ", fact," = ", fact_i(fact), "");
     ## 
     # Code for nth fibonacci #
     ##

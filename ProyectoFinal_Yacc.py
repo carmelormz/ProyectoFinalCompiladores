@@ -130,7 +130,7 @@ def p_crea_var(p):
     if dir_func[funcion_actual]['tabla_vars'].get(id_actual) == None:
         dir_func[funcion_actual]['tabla_vars'][id_actual] = {'nombre': id_actual, 'tipo':tipo_actual, 'dim': [], 'dir_virtual': 0}
     else:
-        print("Variable %s ya declarada" %(id_actual))
+        print("Variable %s already declared." %(id_actual))
         sys.exit()
 
 # Funcion para declar una variable dimensionada 
@@ -275,7 +275,7 @@ def p_crea_func(p):
     if dir_func.get(funcion_actual) == None:
         dir_func[funcion_actual] = {'nombre': funcion_actual, 'tipo': tipo_actual, 'secuencia_par': [], 'tabla_vars': {}, 'dir_inicio': quads.contador, 'tamano': 0}
     else:
-        print("Funcion %s ya declarada" %(funcion_actual))
+        print("Funcion %s already declared." %(funcion_actual))
         sys.exit()
 
 # Funcion para agregar un operador a la pila de operadores.
@@ -310,7 +310,7 @@ def pop_oper(operadores):
                                    'tipo' : tipo_res,
                                    'dir_virtual' : dir_virtual})
         else:
-            print("Type Mismatch")
+            print("Type Mismatch.")
             sys.exit()
 
 # Funcion para sacar el operadorer | de la pila de operadores.
@@ -464,7 +464,7 @@ def p_lista(p):
                                        'dir_virtual' : dir_virtual})
         else:
             # No es variable.
-            print("Variable %s no declarada." %(id_actual))
+            print("Variable %s not declared." %(id_actual))
             sys.exit()
 
 # Genera los cuapruplos necesarios para indexar la casilla de una matriz.
@@ -570,7 +570,7 @@ def p_matriz(p):
                 matrix_def('global')
         else:
             # No es variable.
-            print("Variable %s no declarada." %(id_actual))
+            print("Variable %s not declared." %(id_actual))
             sys.exit()
     else:
         # Variable se referencia como Vector.
@@ -593,7 +593,7 @@ def p_matriz(p):
                 # Generar cuadruplos para calcular la direccion necesaria.
                 vect_def('global')
         else:
-            print("Variable %s no declarada." %(id_actual))
+            print("Variable %s not declared." %(id_actual))
             sys.exit()
 
 # Reglas sintacticas para estatutos y bloques.
@@ -705,14 +705,14 @@ def p_asignacion(p):
         asig_input = False
         tempAsig = pila_operandos.pop()
         if dir_func[funcion_actual]['tabla_vars'].get(p[1]) == None and dir_func['global']['tabla_vars'].get(p[1]) == None:
-            print("Variable %s no declarada." %(p[1]))
+            print("Variable %s not declared." %(p[1]))
             sys.exit()
         quads.genera('input', None, None, tempAsig['dir_virtual'])
     else:
         tempRes = pila_operandos.pop()
         tempAsig = pila_operandos.pop()
         if dir_func[funcion_actual]['tabla_vars'].get(p[1]) == None and dir_func['global']['tabla_vars'].get(p[1]) == None:
-            print("Variable %s no declarada." %(p[1]))
+            print("Variable %s not declared." %(p[1]))
             sys.exit()
         if tempRes['tipo'] == 'int' or tempRes['tipo'] == 'float':
             quads.genera('=', tempRes['dir_virtual'], None, tempAsig['dir_virtual'])
@@ -720,14 +720,17 @@ def p_asignacion(p):
             print('Type Mismatch')
             sys.exit()
 
+# Asignacion una expresion
 def p_exp_input(p):
     '''exp_input : expresion'''
 
+# Asignacion una entrada de consola
 def p_input(p):
     '''exp_input : INPUT PARIZQ PARDER'''
     global asig_input
     asig_input = True
 
+# Reglas sintacticas de una condicion.
 def p_condicion(p):
     '''condicion : IF PARIZQ expresion fin_exp PARDER bloque else_bloque fin_cond
        else_bloque : ELSE inicio_else bloque
@@ -879,7 +882,7 @@ def p_fin_color(p):
     quads.genera('color', val1['dir_virtual'], val2['dir_virtual'], val3['dir_virtual'])
 
 def p_error(p):
-    print("Syntax error at token " + str(p.type) + " lineno " + str(p.lineno))
+    print("Syntax error at " + str(p.value) + " lineno " + str(p.lineno))
     sys.exit()
 
 # FUNCION PRINCIPAL PARA EVELUAR UN ARCHIVO DE TEXTO - python3 ProyectoFinal_Yacc.py archivo

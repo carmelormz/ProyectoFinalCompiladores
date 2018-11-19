@@ -8,12 +8,18 @@ import MapaMemoria
 import ProyectoFinal_Yacc as parser
 import Shapes
 
+# cuadruplos generados
 quads = []
+# instruction pointer
 instruction_pointer = 0
+# mapa de memoria
 mem = None
+# registro de funcion, contiene el valor de retorno de una funcion durante el cambio de contexto
 func_reg = 0
+# figura a dibujar
 shape = Shapes.Shape()
 
+# metera las constantes en el mapa de memoria
 def load_constantes(tabla_constantes):
     global mem
     for val in tabla_constantes:
@@ -334,7 +340,7 @@ def main():
             # input
             op1 = input()
             try:
-                op1 = int(op1)
+                op1 = float(op1)
             except ValueError:
                 print("Inputs must be numeric")
                 sys.exit()

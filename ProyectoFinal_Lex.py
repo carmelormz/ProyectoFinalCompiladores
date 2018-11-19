@@ -106,9 +106,15 @@ def t_CTE_STR(t):
     r'\"[^\"\~]*\"'
     return t
 
+#REGLA PARA IGNORAR COMMENTARIO.
 def t_COMMENT(t):
     r'\#[^\#]*\#'
     pass
+
+#REGLA PARA CONTAR EL NUMBERO DE LINEA.
+def t_NEWLINE(t):
+    r'\n+'
+    t.lexer.lineno += len(t.value)
 
 #REGLAS PARA DETECTAR CARACTERES ESPECIALES.
 t_BRADER = r'\}'
@@ -134,12 +140,12 @@ t_MULT = r'\*'
 t_ASIG = r'\='
 t_COMA = r'\,'
 t_PUNTO = r'\.'
-t_ignore = ' \t\n'
+t_ignore = ' \t'
 
 
 #MENSAJE DE ERROR.
 def t_error(t):
-    print("Invalid character")
+    print("Invalid character %s at line number, %s" %(t.value[0], t.lexer.lineno))
     t.lexer.skip(1)
     sys.exit()
 
