@@ -63,9 +63,135 @@ void funcion2() {
   return;
 }
 ```
-
+## **LLAMADA A FUNCIONES**
 
 ## **USO DE CILCOS**
-## **CREACION DE FIGURA**
-## **MODIFICAR UNA FIGURA**
+
+En el lenguaje FYG existe el estatuto de cilo *repeat*, el cual realiza un bloque de código un numero finito de veces hasta que se cumpla la condicion establecida en el parámetro de la función.
+
+La sintaxis del estatuto *repeat* es la siguiente: REPEAT ( CONDICION) {}
+
+**Ejemplo:**
+
+```python
+# Ejemplo REPEAT - Ciclo que corre 10 veces.
+int x;
+x = 10;
+repeat(x > 0) {
+  x = x - 1;
+}
+```
+
+## **MOVIMIENTO FIGURA PRINCIPAL**
+
+La salida gráfica de FYG se concentra en una figura principal, que es la encargada de dibujar cada figura o realizar cada instrucción gráfica que el código el dicte. Esta figura se pude mover hacia diferentes direcciones, habilitar/inhabilitar el pincel de dibujo, entre otras. Las funciones habilitadas para la figura principal son las siguientes:
+
+- **Forward**: Movimiento de la figura principal hacia enfrente, siguiendo la orientación que tenga. Recibe como parámetro la distancia a mover hacia adelante.
+
+**Ejemplo**:
+
+```python
+# Movimiento de la figura principal, 10 hacia adelante
+forward(10);
+```
+
+- **Backward**: Movimiento de la figura principal hacia atras, siguiendo la orientación que tenga. Recibe como parámetro la distancia a mover hacia atras.
+
+**Ejemplo**:
+
+```python
+# Movimiento de la figura principal, 10 hacia atras
+backwards(10);
+```
+- **Left**: Movimiento de la figura completa hacia la izquierda basada en la actual orientación, no afecta orientación. Recibe como parámetro la distancia a moverse a la izquierda.
+
+```python
+# Movimiento de la figura principal hacia la izquierda, 10 en distancia.
+left(10);
+```
+
+
+- **Right**: Movimiento de la figura completa hacia la derecha basada en la actual orientación, no afecta orientación. Recibe como parámetro la distancia a moverse a la derecha.
+
+```python
+#Movimiento de la figura principal hacia la derecha, 10 en distancia
+right(10);
+```
+
+- **Turn**: Cambio de orientación de la figura hacia la derecha, según un ángulo dado por el usuario como parámetro. 
+
+```python
+# Rotar la figura principal 90 angulos a la derecha.
+turn(90);
+```
+
+- **Up**: Levanta el pincel de dibujo, la figura principal deja de dibujar. No recibe ningún parámetro.
+
+```python
+# Cancelar que la figura dibuje.
+up();
+```
+
+- **Down**: Baja el pincel de dibujo, la figura principal puede dibujar. No recibe ningún parámetro.
+
+```python
+# Habilitar que la figura dibuje.
+down();
+```
+
+
+## **CREACION DE FIGURA GEOMETRICA**
+El lenguaje FYG tiene la funcionalidad de crear diferentes figuras geométricas. Las figuras disponibles son: 
+  - Circulo
+  - Triangulo
+  - Cuadrado
+  - N-gon
+  - Arco
+
+Para crear alguna de estas figuras se tiene que utilizar las funciones predeterminadas del lenguaje para cada una de las figuras. Las funciones para cada figura son:
+  - **Circulo**: Se se utiliza la función ***circle()***, la cual recibe como parametro el tamaño de radio.
+  
+  **Ejemplo:**
+  
+  ```python
+  # Circulo con 10 de radio.
+  circle(10);
+  ```
+    
+  - **Triangulo**: Para dibujar un triangulo en FYG se utiliza la función ***triangle()***, que recibe como parámetro el tamaño del triangulo deseado.
+  
+  **Ejemplo:**
+  
+  ```python
+  # Triangulo de tamaño 5
+  triangle(5);
+  ```
+    
+  - **Cuadrado**: Para dibujar un cuadrado en FYG se utiliza la función ***square()***, la cual recibe como parametro tamaño de los lados del cuadrado.
+  
+  **Ejemplo:**
+  
+  ```python
+  #Cuadrado con tamaño 10 de cada lado.
+  square(10);
+  ```
+  - **N-gon:** N-gon es una figura de n-lados determinados por el usuario. Esta función puede crear figuras de cualquier número de lados. Para hacer uso de esta función, se necesita utilizar la función ***ngon()*** de FYG, la cual recibe de parámetros dos parametros: el primero es el número de lados de la figura, el segundo el tamaño de la figura.
+  
+  **Ejemplo:**
+  
+  ```python
+  # N-gon de 6 lados, con un tamaño de 10
+  ngon(6,10);
+  ```
+  
+  - **Arco**: Para dibujar un arco se utiliza la función ***arc()***, la cual recibe como parámetro el tamaño del arco.
+  
+   **Ejemplo:**
+   
+   ```python
+   # Arco de tamaño 15
+   arc(15);
+   ```
+   
+## **MODIFICAR UNA FIGURA GEOMETRICA**
 ## **EJECUTAR CODIGO**
