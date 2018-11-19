@@ -141,24 +141,31 @@ def p_lista_dec(p):
     global mapa
     tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
     if len(p) > 2:
-        # Si sí es dimensionada
+        # Si es variable dimensionada
         if p[2] < 1:
             print("Dimension must be greater than 1, var %s" %(id_actual))
             sys.exit()
         tam = 0
         dir_virtual = 0
+        # agrega tamanio de primera dimension
         dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'].insert(0,p[2])
+        # calcular tamanio de la variable
         if len(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim']) > 1:
+            # es matriz
             tam = dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0]*dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][1]
+            # actualiza el tamanio de la funcion
             dir_func[funcion_actual]['tamano'] += tam
         else:
+            # es vector
             tam = dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0]
+            # actualiza el tamanio de la funcion
             dir_func[funcion_actual]['tamano'] += tam
-        
+        # asigna direccion virtual a la variable
         if funcion_actual == 'global':
             dir_virtual = mapa.creaVarGlobal(tipo, tam)
         else:
             dir_virtual = mapa.creaVarLocal(tipo, tam)
+        # actualiza la dir_virtual de la viariable
         dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual'] = dir_virtual
     else:
         # Es variable simple
@@ -176,6 +183,8 @@ def p_matriz_dec(p):
                   | '''
     global dir_func
     if len(p) > 2:
+        # si es matriz
+        # agrega tamanio de segunda dimension
         dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'].insert(0,p[2])
         if p[2] < 1:
             print("Second dimension must be greater than 1 for variable %s" %(id_actual))
@@ -360,7 +369,7 @@ def p_expresion(p):
        var : ID actualiza_id push_paren var_func_call pop_paren
        var_func_call : lista'''
 
-# Manejar operador unarion menos
+# Manejar operador unario menos.
 def p_neg(p):
     '''neg : '''
     global quads
@@ -373,8 +382,6 @@ def p_neg(p):
     pila_operandos.append({'nombre': 'temp',
                             'tipo' : oper['tipo'],
                             'dir_virtual' : dir_virtual})
-    
-
 
 # Agregar constante entera a la pila de operadores.
 def p_var_int(p):
@@ -394,16 +401,13 @@ def p_var_float(p):
                            'tipo' : 'float',
                            'dir_virtual' : dir_constant(p[1],'ctef')})
 
-def p_var_error(p):
-    '''var : error'''
-    print("Type Mismatch")
-    sys.exit()
-
+# Crear fondo falso.
 def p_push_paren(p):
     '''push_paren : '''
     global pila_operadores
     pila_operadores.append('(')
 
+# Sacar fondo falso.
 def p_pop_paren(p):
     '''pop_paren : '''
     global pila_operadores
@@ -412,26 +416,32 @@ def p_pop_paren(p):
         print('Error', top) 
         sys.exit()
 
+# Agrega la variable a la pila de variabes dimensionadas.
 def p_push_dim(p):
     '''push_dim : '''
     global id_actual
     global var_dim
     var_dim.append(id_actual)
 
+# Saca la variable a la pila de variabes dimensionadas.
 def p_pop_dim(p):
     '''pop_dim : '''
     global id_actual
     global var_dim
     id_actual = var_dim.pop()
 
+# Referenciar una variable dimensionada.
 def p_lista(p):
     '''lista : CORIZQ push_dim expresion CORDER matriz
              | '''
     global dir_func
     global pila_operandos
     if len(p) < 2:
+        # No se referencia como variable dimensionada.
         if dir_func[funcion_actual]['tabla_vars'].get(id_actual) != None:
+            # Es variable local.
             if len(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim']) > 0:
+                # Error es variable dimensionada.
                 print("Variable %s is Multidimensional" %(id_actual))
                 sys.exit()
             else:
@@ -441,7 +451,9 @@ def p_lista(p):
                                        'tipo' : tipo,
                                        'dir_virtual' : dir_virtual})
         elif dir_func['global']['tabla_vars'].get(id_actual) != None:
+            # Es variable global.
             if len(dir_func['global']['tabla_vars'][id_actual]['dim']) > 0:
+                # Error es variable dimensionada.
                 print("Variable %s is Multidimensional" %(id_actual))
                 sys.exit()
             else:
@@ -451,9 +463,11 @@ def p_lista(p):
                                        'tipo' : tipo,
                                        'dir_virtual' : dir_virtual})
         else:
+            # No es variable.
             print("Variable %s no declarada." %(id_actual))
             sys.exit()
 
+# Genera los cuapruplos necesarios para indexar la casilla de una matriz.
 def matrix_def(funcion_actual):
     global dir_func
     global pila_operandos
@@ -461,11 +475,13 @@ def matrix_def(funcion_actual):
     d2 = pila_operandos.pop()
     d1 = pila_operandos.pop()
     if d1['tipo'] != 'int' or d2['tipo'] != 'int':
+        # verifica que ambos indices sean enteros.
         print("Indices must be integers")
         sys.exit()
     d2 = d2['dir_virtual']
     d1 = d1['dir_virtual']
     tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
+    # genera direcciones vurtuales necesarias.
     if tipo == 'int':
         dir_virtual = mapa.creaVarLocal('tmpi')
         dir_virtual2 = mapa.creaVarLocal('tmpi')
@@ -474,73 +490,107 @@ def matrix_def(funcion_actual):
         dir_virtual = mapa.creaVarLocal('tmpf')
         dir_virtual2 = mapa.creaVarLocal('tmpf')
         ptr = mapa.creaVarLocal('ptrf')
+    # sacar direccion de cero de la tabla de constantes como limite inferior.
     li = dir_constant(0,'ctei')
+    # sacar direccion de limite superior de primera dimension de la tabla de constantes.
     ls1 = dir_constant(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0] - 1,'ctei')
+    # sacar direccion de limite superior de segunda dimension de la tabla de constantes.
     ls2 = dir_constant(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][1] - 1,'ctei')
+     # sacar direccion de tamanio de primera dimension.
     tam = dir_constant(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0], 'ctei')
+    # genera cuadruplo ver de primera dimension.
     quads.genera('ver', d1, li, ls1)
+    # multiplica primer indice por su tamanio
     quads.genera('*', d1, tam, dir_virtual)
+    # genera cuadruplo ver de segunda dimenion.
     quads.genera('ver', d2, li, ls2)
+    # suma segunda dimension 
     quads.genera('+', d2, dir_virtual, dir_virtual2)
+    # sacar la direccion base.
     dirB = dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual']
+    # suma el indice calculador a la direccion base.
     quads.genera('+', dir_constant(dirB, 'ctei'), dir_virtual2, ptr)
+    # meter el apuntador desreferenciado en la pila de operandos.
     pila_operandos.append({'nombre': 'ptr', 'tipo' : tipo, 'dir_virtual': '~' + str(ptr)})
 
+# Genera los cuapruplos necesarios para indexar la casilla de un vector.
 def vect_def(funcion_actual):
     global dir_func
     global pila_operandos
     global quads
     d1 = pila_operandos.pop()
     if d1['tipo'] != 'int':
+        # verifica que indice sea entero.
         print("Indices must be integers")
         sys.exit()
     d1 = d1['dir_virtual']
     tipo = dir_func[funcion_actual]['tabla_vars'][id_actual]['tipo']
+    # genera la direccion del apuntador
     if tipo == 'int':
         dir_virtual = mapa.creaVarLocal('ptri')
     else:
         dir_virtual = mapa.creaVarLocal('ptrf')
+    # sacar direccion de cero de la tabla de constantes como limite inferior.
     li = dir_constant(0,'ctei')
+    # sacar direccion de limite superior de la tabla de constantes.
     ls = dir_constant(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim'][0] - 1,'ctei')
+    # genera cuadruplo ver.
     quads.genera('ver', d1, li, ls)
+    # sacar la direccion base.
     dirB = dir_func[funcion_actual]['tabla_vars'][id_actual]['dir_virtual']
+    # suma el indice a la direccion base.
     quads.genera('+', dir_constant(dirB, 'ctei'), d1, dir_virtual)
-    pila_operandos.append({'nombre': 'ptr',
-                           'tipo' : tipo,
-                           'dir_virtual' : '~' + str(dir_virtual)})
+    # meter el apuntador desreferenciado en la pila de operandos.
+    pila_operandos.append({'nombre': 'ptr', 'tipo' : tipo, 'dir_virtual' : '~' + str(dir_virtual)})
 
+# Regla sintactica para matrices.
 def p_matriz(p):
     '''matriz : CORIZQ expresion CORDER pop_dim
               | pop_dim'''
     global dir_func
     if len(p) > 2:
+        # Variable se referencia como Matriz.
         if dir_func[funcion_actual]['tabla_vars'].get(id_actual) != None:
+            # Es variable local.
             if len(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim']) < 2:
+                # Variable es Vector y no Matriz.
                 print("Variable %s is vector not matrix" %(id_actual))
                 sys.exit()
             else:
+                # Generar cuadruplos para calcular la direccion necesaria.
                 matrix_def(funcion_actual)
         elif dir_func['global']['tabla_vars'].get(id_actual) != None:
+            # Es variable global.
             if len(dir_func['global']['tabla_vars'][id_actual]['dim']) < 2:
+                # Variable es Vector y no Matriz.
                 print("Variable %s is vector not matrix" %(id_actual))
                 sys.exit()
             else:
+                # Generar cuadruplos para calcular la direccion necesaria.
                 matrix_def('global')
         else:
+            # No es variable.
             print("Variable %s no declarada." %(id_actual))
             sys.exit()
     else:
+        # Variable se referencia como Vector.
         if dir_func[funcion_actual]['tabla_vars'].get(id_actual) != None:
+            # Es variable local.
             if len(dir_func[funcion_actual]['tabla_vars'][id_actual]['dim']) > 1:
+                # Es matriz y no vector.
                 print("Variable %s is matrix not vector" %(id_actual))
                 sys.exit()
             else:
+                # Generar cuadruplos para calcular la direccion necesaria.
                 vect_def(funcion_actual)
         elif dir_func['global']['tabla_vars'].get(id_actual) != None:
+            # Es variable local.
             if len(dir_func['global']['tabla_vars'][id_actual]['dim']) > 1:
+                 # Es matriz y no vector.
                 print("Variable %s is matrix not vector" %(id_actual))
                 sys.exit()
             else:
+                # Generar cuadruplos para calcular la direccion necesaria.
                 vect_def('global')
         else:
             print("Variable %s no declarada." %(id_actual))
