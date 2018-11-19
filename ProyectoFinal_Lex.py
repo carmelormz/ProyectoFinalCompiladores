@@ -72,11 +72,6 @@ palabrasReservadas = {
     'int' : 'INT',
     'float' : 'FLOAT',
     'void' : 'VOID',
-    'filledCircle' : 'FILLED_CIRCLE',
-    'filledSquare' : 'FILLED_SQUARE',
-    'filledTriangle' : 'FILLED_TRIANGLE',
-    'filledNgon' : 'FILLED_NGON',
-    'fillerColor' : 'FILLER_COLOR'
 }
 
 
@@ -156,7 +151,6 @@ lexer = lex.lex()
 # FUNCION ADICIONAL PARA VER LOS TOKENS DENTRO DE UNA CADENA.
 def verTokens(entrada):
     lexer.input(entrada)
-    # entrada = ' "str[()w2ASSDAF]ng" hheooi 78923 930 l 990.32 * 27 if else repeat !=  <= == >=  & | = { } () "" '
     token = lexer.token()
     while (token is not None):
         print(token)

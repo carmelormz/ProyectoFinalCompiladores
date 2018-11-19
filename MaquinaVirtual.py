@@ -8,7 +8,6 @@ import MapaMemoria
 import ProyectoFinal_Yacc as parser
 import Shapes
 
-dir_func = {}
 quads = []
 instruction_pointer = 0
 mem = None
@@ -21,15 +20,16 @@ def load_constantes(tabla_constantes):
         mem.insert(tabla_constantes[val], val)
 
 def main():
-    global dir_func
     global quads
     global instruction_pointer
     global mem
     global func_reg
-    dir_func, tabla_constantes, quads, val = parser.parse(str(sys.argv[1]))
-    mem = MapaMemoria.MapaMemoria(val[0], val[1], val[2], val[3], val[4], val[5], 80000)
+    tabla_constantes, quads, direcciones = parser.parse(str(sys.argv[1]))
+    mem = MapaMemoria.MapaMemoria(direcciones[0], direcciones[1], direcciones[2],
+                                  direcciones[3], direcciones[4], direcciones[5],
+                                  80000)
     load_constantes(tabla_constantes)
-    myTurtle = turtle.Turtle(shape="turtle")
+    myTurtle = turtle.Turtle(shape="classic")
     screen = turtle.getscreen()
     screen.colormode(255)
     fill = False
@@ -38,8 +38,6 @@ def main():
     def close():
         turtle.bye()
         sys.exit()
-    # When clicking SPACE, close Turtle Window
-    screen.onkeypress(close, "space")
     screen.listen()
     while quads[instruction_pointer][0] != 10:
         if quads[instruction_pointer][0] == 0:
@@ -58,11 +56,14 @@ def main():
             instruction_pointer += 1
         elif quads[instruction_pointer][0] == 2:
             # import abrir una imagen
-            image = imageio.imread(quads[instruction_pointer][3][1:-1])
-            height, width, _ = image.shape
-            imageio.mimsave('temp.gif', [image])
-            screen.setup(width, height)
-            screen.bgpic('temp.gif')
+            try:
+                image = imageio.imread(quads[instruction_pointer][3][1:-1])
+                height, width, _ = image.shape
+                imageio.mimsave('temp.gif', [image])
+                screen.setup(width, height)
+                screen.bgpic('temp.gif')
+            except FileNotFoundError:
+                print("File %s Not Found" %(quads[instruction_pointer][3][1:-1]))
             instruction_pointer += 1
         elif quads[instruction_pointer][0] == 3:
             # endproc
@@ -356,55 +357,14 @@ def main():
             fill = False
             shape.points = []
             instruction_pointer += 1
-        elif quads[instruction_pointer][0] == 47:
-            #Circulo Relleno
-            radius = mem.find(quads[instruction_pointer][3])
-            myTurtle.begin_fill()
-            myTurtle.circle(radius)
-            myTurtle.end_fill()
-            instruction_pointer += 1
-        elif quads[instruction_pointer][0] == 48:
-            #Cuadrado Relleno
-            radius = mem.find(quads[instruction_pointer][3])
-            tam_lados = math.sqrt(dim)
-            tam_lados *= 10
-            myTurtle.begin_fill()
-            for i in range(4):
-                myTurtle.forward(tam_lados)
-                myTurtle.left(90)
-            myTurtle.end_fill()
-            instruction_pointer += 1
-        elif quads[instruction_pointer][0] == 49:
-            #Triangulo Relleno
-            size = mem.find(quads[instruction_pointer][3])
-            myTurtle.begin_fill()
-            for i in range(3):
-                myTurtle.forward(size)
-                myTurtle.left(120)
-            myTurtle.end_fill()
-            instruction_pointer += 1
-        elif quads[instruction_pointer][0] == 50:
-            #Ngon Relleno
-            num_sides = mem.find(quads[instruction_pointer][3])
-            angle = 360.0 / num_sides
-            myTurtle.begin_fill()
-            for i in range(num_sides):
-                myTurtle.forward(70)
-                myTurtle.right(angle)
-            myTurtle.end_fill()
-            instruction_pointer += 1
-        elif quads[instruction_pointer][0] == 51:
-            r = mem.find(quads[instruction_pointer][1])
-            g = mem.find(quads[instruction_pointer][2])
-            b = mem.find(quads[instruction_pointer][3])
-            myTurtle.fillcolor(r,g,b)
-            instruction_pointer += 1
         else:
             print(quads[instruction_pointer])
             print('Error')
             sys.exit()
+    # When clicking SPACE, close Turtle Window
+    screen.onkeypress(close, "space")
     #INICIA APLICACION TURTLE
-    screen._root.mainloop()
+    screen.mainloop()
 
 if __name__ == '__main__':
     main()

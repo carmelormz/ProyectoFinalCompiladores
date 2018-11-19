@@ -38,8 +38,7 @@ class Quad:
                                   '<=' : 36, '>=' : 37, '+' : 38,
                                   '-' : 39, '*' : 40, '/' : 41,
                                   '=' : 42, '%' : 43, 'input' : 44,
-                                  'module': 45, 'draw' : 46, 'filledCircle' : 47, 'filledSquare' : 48,
-                                  'filledTriangle' : 49, 'filledNgon' : 50, 'fillerColor' : 51}
+                                  'module': 45, 'draw' : 46}
     '''
         genera()
             Metodo para generar un cuadruplo.

@@ -10,11 +10,6 @@ import sys
 import json
 
 #------------- SINTAXIS DEL LENGUAJE ---------
-
-precedence = (
-    ('left','SUMA','RESTA'),
-    ('left','MULT','DIV', 'MOD'),
-)
 # dir_func = {nombre, tipo, tamano, secuencia_par, tabla_vars, dir_inicio}
 # tabla_vars = {nombre, tipo, dim, dir_virual}
 dir_func = {}
@@ -771,11 +766,6 @@ def p_instruccion(p):
                    | UP actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
                    | DOWN actualiza_instr PARIZQ PARDER fin_instr PUNTCOM
                    | COLOR PARIZQ expresion COMA expresion COMA expresion PARDER fin_color PUNTCOM
-                   | FILLED_CIRCLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
-                   | FILLED_SQUARE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
-                   | FILLED_TRIANGLE actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
-                   | FILLED_NGON actualiza_instr PARIZQ expresion PARDER fin_instr1 transform PUNTCOM
-                   | FILLER_COLOR actualiza_instr PARIZQ expresion COMA expresion COMA expresion PARDER fin_color PUNTCOM
        fill : FILL actualiza_instr PARIZQ PARDER fin_instr trans
             | altera trans
        trans : PUNTO altera trans
@@ -844,7 +834,8 @@ def parse(file):
     data=file.read()
     file.close()
     parser.parse(data)
-    return [dir_func, tabla_constantes, quads.quads, mapa.vals]
+    # return [dir_func, tabla_constantes, quads.quads, mapa.vals]
+    return [tabla_constantes, quads.quads, mapa.vals]
 '''
 def main():
     temp = parse(str(sys.argv[1]))
