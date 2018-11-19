@@ -99,7 +99,7 @@ main() {
 }
 ```
 
-## **USO DE CILCOS**
+## **USO DE CICLOS**
 
 En el lenguaje FYG existe el estatuto de cilo *repeat*, el cual realiza un bloque de código un numero finito de veces hasta que se cumpla la condicion establecida en el parámetro de la función.
 
