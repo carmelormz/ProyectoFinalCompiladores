@@ -277,6 +277,35 @@ triangle(10).rotate(35);
 circle(50). stretch(10);
 ```
 
+## MODIFICAR/CAMBIAR FONDO DE LA SALIDA GRAFICA
+
+El lenguaje de FYG permite al usuario cambiar las características del fondo de la salida gráfica. El usuario puede cambiar la altura, anacho y color del fondo, ó poner una imagen deseada de fondo. Para realizar estas acciones, se necesita ingresa el siguiente código al programa FYG:
+
+- **Modificar características ventana de salida gráfica**: Cambiar la altura, anchura y color del fondo de la ventana.
+
+**Ejemplo**:
+
+```python
+canvas {
+  widht: 500;
+  height: 500;
+  background 0,0,0
+}
+```
+
+El código anterior define la ventana emergente con un tamaño de 500x500 y un color de fondo Negro. Este bloque de código se debe poner la principio del programa, antes del main().
+
+- **Definir Imagen de Fondo**: Se define una imagen personalizada de fondo para la ventana emergente.
+
+**Ejemplo**:
+```python
+import "image.jpg";
+```
+
+El código anterior define la imagen "image.jpg" como el fondo de la ventana emergente.
+
+**NOTA**: No se pueden utilizar ambas funcionalidades al mismo tiempo en el programa: O se cambia las características de la ventana emergente ó se define una imagen personalizada como fondo.
+
 ## **EJECUTAR CODIGO**
 
 Para ejecutar el programa FYG, realice los siguientes pasos:
