@@ -56,7 +56,7 @@ int funcion2() {
 ```
 ```python
 # Declaracion de Funcion sin Retorno
-void funcion2() {
+void funcion3() {
   int variable;
   variable = 1;
   print(variable);
@@ -64,6 +64,40 @@ void funcion2() {
 }
 ```
 ## **LLAMADA A FUNCIONES**
+Para llamar a una función en FYG solamente hay que escribir el nombre de la función y asignarle los parámetros necesarios para la ejecución de la función. 
+
+**Ejemplo**:
+
+```python
+#Llamada a funcion con parametros
+
+main() { 
+  int i;
+  i = 2;
+  
+  #Se llama a funcion1(), se manda como parametro la variable i
+  funcion1(i);  
+  
+  return;
+}
+```
+
+Cuando la función tiene un valor de retorno, su llamada se puede igualar a una variable, para que esta almacene el valor de retorno.
+
+**Ejemplo**:
+
+```python
+#Llamada a funcion con parametros
+
+main() { 
+  int i;
+  
+  #Se llama a funcion2(), no recibe parametros
+  i = funcion2();
+  
+  return;
+}
+```
 
 ## **USO DE CILCOS**
 
@@ -86,7 +120,7 @@ repeat(x > 0) {
 
 La salida gráfica de FYG se concentra en una figura principal, que es la encargada de dibujar cada figura o realizar cada instrucción gráfica que el código el dicte. Esta figura se pude mover hacia diferentes direcciones, habilitar/inhabilitar el pincel de dibujo, entre otras. Las funciones habilitadas para la figura principal son las siguientes:
 
-- **Forward**: Movimiento de la figura principal hacia enfrente, siguiendo la orientación que tenga. Recibe como parámetro la distancia a mover hacia adelante.
+- **Forward**: Movimiento de la figura principal hacia enfrente, siguiendo la orientación que tenga. Se utiliza la función ***forward(dist)***. Recibe como parámetro la distancia a mover hacia adelante. 
 
 **Ejemplo**:
 
@@ -95,7 +129,7 @@ La salida gráfica de FYG se concentra en una figura principal, que es la encarg
 forward(10);
 ```
 
-- **Backward**: Movimiento de la figura principal hacia atras, siguiendo la orientación que tenga. Recibe como parámetro la distancia a mover hacia atras.
+- **Backward**: Movimiento de la figura principal hacia atras, siguiendo la orientación que tenga. Se utiliza la función ***backward(dist)***. Recibe como parámetro la distancia a mover hacia atras.
 
 **Ejemplo**:
 
@@ -103,7 +137,7 @@ forward(10);
 # Movimiento de la figura principal, 10 hacia atras
 backwards(10);
 ```
-- **Left**: Movimiento de la figura completa hacia la izquierda basada en la actual orientación, no afecta orientación. Recibe como parámetro la distancia a moverse a la izquierda.
+- **Left**: Movimiento de la figura completa hacia la izquierda basada en la actual orientación, no afecta orientación. Se utiliza la función ***left(dist)***. Recibe como parámetro la distancia a moverse a la izquierda.
 
 ```python
 # Movimiento de la figura principal hacia la izquierda, 10 en distancia.
@@ -111,28 +145,28 @@ left(10);
 ```
 
 
-- **Right**: Movimiento de la figura completa hacia la derecha basada en la actual orientación, no afecta orientación. Recibe como parámetro la distancia a moverse a la derecha.
+- **Right**: Movimiento de la figura completa hacia la derecha basada en la actual orientación, no afecta orientación. Se utiliza la función ***right(dist)***. Recibe como parámetro la distancia a moverse a la derecha.
 
 ```python
 #Movimiento de la figura principal hacia la derecha, 10 en distancia
 right(10);
 ```
 
-- **Turn**: Cambio de orientación de la figura hacia la derecha, según un ángulo dado por el usuario como parámetro. 
+- **Turn**: Cambio de orientación de la figura hacia la derecha, según un ángulo dado por el usuario como parámetro. Se utiliza la función ***turn(angle)***.
 
 ```python
 # Rotar la figura principal 90 angulos a la derecha.
 turn(90);
 ```
 
-- **Up**: Levanta el pincel de dibujo, la figura principal deja de dibujar. No recibe ningún parámetro.
+- **Up**: Levanta el pincel de dibujo, la figura principal deja de dibujar. No recibe ningún parámetro. Se utiliza la función ***up()***.
 
 ```python
 # Cancelar que la figura dibuje.
 up();
 ```
 
-- **Down**: Baja el pincel de dibujo, la figura principal puede dibujar. No recibe ningún parámetro.
+- **Down**: Baja el pincel de dibujo, la figura principal puede dibujar. No recibe ningún parámetro. Se utiliza la función ***down()***.
 
 ```python
 # Habilitar que la figura dibuje.
@@ -149,7 +183,7 @@ El lenguaje FYG tiene la funcionalidad de crear diferentes figuras geométricas.
   - Arco
 
 Para crear alguna de estas figuras se tiene que utilizar las funciones predeterminadas del lenguaje para cada una de las figuras. Las funciones para cada figura son:
-  - **Circulo**: Se se utiliza la función ***circle()***, la cual recibe como parametro el tamaño de radio.
+  - **Circulo**: Se se utiliza la función ***circle(size)***, la cual recibe como parametro el tamaño de radio.
   
   **Ejemplo:**
   
@@ -158,7 +192,7 @@ Para crear alguna de estas figuras se tiene que utilizar las funciones predeterm
   circle(10);
   ```
     
-  - **Triangulo**: Para dibujar un triangulo en FYG se utiliza la función ***triangle()***, que recibe como parámetro el tamaño del triangulo deseado.
+  - **Triangulo**: Para dibujar un triangulo en FYG se utiliza la función ***triangle(size)***, que recibe como parámetro el tamaño del triangulo deseado.
   
   **Ejemplo:**
   
@@ -167,7 +201,7 @@ Para crear alguna de estas figuras se tiene que utilizar las funciones predeterm
   triangle(5);
   ```
     
-  - **Cuadrado**: Para dibujar un cuadrado en FYG se utiliza la función ***square()***, la cual recibe como parametro tamaño de los lados del cuadrado.
+  - **Cuadrado**: Para dibujar un cuadrado en FYG se utiliza la función ***square(size)***, la cual recibe como parametro tamaño de los lados del cuadrado.
   
   **Ejemplo:**
   
@@ -175,7 +209,7 @@ Para crear alguna de estas figuras se tiene que utilizar las funciones predeterm
   #Cuadrado con tamaño 10 de cada lado.
   square(10);
   ```
-  - **N-gon:** N-gon es una figura de n-lados determinados por el usuario. Esta función puede crear figuras de cualquier número de lados. Para hacer uso de esta función, se necesita utilizar la función ***ngon()*** de FYG, la cual recibe de parámetros dos parametros: el primero es el número de lados de la figura, el segundo el tamaño de la figura.
+  - **N-gon:** N-gon es una figura de n-lados determinados por el usuario. Esta función puede crear figuras de cualquier número de lados. Para hacer uso de esta función, se necesita utilizar la función ***ngon(#_sides, size)*** de FYG, la cual recibe de parámetros dos parametros: el primero es el número de lados de la figura, el segundo el tamaño de la figura.
   
   **Ejemplo:**
   
@@ -184,7 +218,7 @@ Para crear alguna de estas figuras se tiene que utilizar las funciones predeterm
   ngon(6,10);
   ```
   
-  - **Arco**: Para dibujar un arco se utiliza la función ***arc()***, la cual recibe como parámetro el tamaño del arco.
+  - **Arco**: Para dibujar un arco se utiliza la función ***arc(size)***, la cual recibe como parámetro el tamaño del arco.
   
    **Ejemplo:**
    
@@ -193,5 +227,60 @@ Para crear alguna de estas figuras se tiene que utilizar las funciones predeterm
    arc(15);
    ```
    
-## **MODIFICAR UNA FIGURA GEOMETRICA**
+## **MODIFICAR UNA FIGURA GEOMETRICA Y PINCEL DE DIBUJO**
+
+Al momento de crear una figura geométrica, predeterminadamente se crean vacías. Dado esto, FYG incluye varias funciones predeterminadas para modificar las figuras geométricas al momento de estarlas creando (Una vez creadas ya no se pueden modificar). Las funciones disponibles para la modificación de las figuras son:
+
+- **Size**: El ancho del pincel de dibujo se modifica. Se utiliza la función ***size(size)***. Recibe como parametro el tamaño del pincel.
+
+**Ejemplo**:
+
+```python
+# Modifica el tamaño de dibujo del pincel
+size(10);
+```
+
+- **Color**: Modifica el color de dibujo del pincel y de rellanado al utilizar ***fill()***. Se utiliza la función ***color(r,g,b)***. Recibe como parametros el color deseado en RGB.
+
+**Ejemplo**:
+
+```python
+# Cambio de color a AZUL(34,113,179)
+color(34,113,179);
+```
+
+- **Fill**: Rellena la figura del color que este determinado para el dibujo. Se utiliza la función ***fill()***. No recibe parámetros.
+
+**Ejemplo**:
+
+```python
+#Rellenar circulo de color rojo
+color(255,35,1);
+circle(50).fill();
+```
+
+- **Rotate**: Rota la figura creada una cierta cantidad de ángulo. Se utiliza la función ***rotate(angle)***. Recibe como parámetro la cantidad de angulos que se quiere rotar la figura hacia la derecha.
+
+**Ejemplo**:
+
+```python
+# Rotar triangulo 35 grados.
+triangle(10).rotate(35);
+```
+
+- **Stretch**: Estira la figura una cierta cantidad determinada por el usuario. Se utiliza la función ***stretch(dist)***. Recibe como parámetro la distancia que se quiere estirar.
+
+**Ejemplo**:
+
+```python
+# Estirar un circulo, una dist de 10.
+circle(50). stretch(10);
+```
+
 ## **EJECUTAR CODIGO**
+
+Para ejecutar el programa FYG, realice los siguientes pasos:
+1. Bajar el proyecto de FYG
+2. Dentro de la carpeta del proyecto, crear un nuevo archivo .txt y escribir el código en el lenguaje de FYG, deseado a ejecutar por el compilador.
+3. En la terminal de la computadora, posicionarse en el directorio del proyecto, donde se encuentran los archivos de Python (.py) y su archivo de texto en el lenguaje de FYG creado. 
+4. Ejecutar ```python MaquinaVirtual.py NOMBRE_ARCHIVO.txt``` donde el NOMBRE_ARCHIVO.txt es el nombre de su archivo con el código en FYG.
