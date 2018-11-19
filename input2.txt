@@ -1,21 +1,85 @@
 module "hello_world";
-import "hello";
-int A, B, C, D;
+#import "hello";#
+canvas {
+    width 1080;
+    height 720;
+    background 255, 255, 255;
+}
+
+void perspective(){
+    int x, i, return_val;
+    float tam;
+    x = 14;
+    i = 0;
+    tam = 4.0;
+    i = 0;
+    return_val = 0;
+    repeat(i < x){
+        forward(i * tam);
+        left(i * tam);
+        backward(i * tam);
+        right(i * tam);
+        left(i * tam);
+        return_val = return_val + i*tam;
+        i = i + 1;
+    }
+    right(return_val);
+    return;
+}
+
+void fan(){
+    int i, rotations;
+    i = 0;
+    rotations = 10;
+    repeat(i < 25){
+        perspective();
+        turn(10);
+        i = i + 1;
+    }
+    return;
+}
+
+void zigzag(){
+    int num, i, dist;
+    num = 50;
+    i = 1;
+    dist = 0;
+    repeat(num > 5){
+        turn(num*i);
+        forward(num*i);
+        i = i*-1;
+        dist = dist + num*i;
+        num = num - 1;
+    }
+    up();
+    right(12*dist);
+    down();
+    return;
+}
+
 main {
-    int B, C, D;
-    if (A + B > D){
-        if (A < B) {
-            A = 0;
-            B = B + D;
-        }
-        else {
-            C = A + B;
-        }
-    }
-    else
-    {
-        A = B + C;
-    }
-    D = B + A * C;
+    zigzag();
+    zigzag();
+    zigzag();
+    up();
+    right(50);
+    down();
+    color(255, 150, 0);
+    circle(50).fill();
+    size(2);
+    color(0, 0, 0);
+    circle(50);
+    size(1);
+    up();
+    left(50);
+    down();
+    color(100,0,0);
+    circle(10).fill();
+    up();
+    backward(45);
+    turn(180);
+    down();
+    fan();
+
     return;
 }

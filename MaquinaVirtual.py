@@ -36,7 +36,8 @@ def main():
                                   80000)
     load_constantes(tabla_constantes)
     myTurtle = turtle.Turtle(shape="classic")
-    screen = turtle.getscreen()
+    myTurtle.speed('fastest')
+    screen = myTurtle.getscreen()
     screen.colormode(255)
     fill = False
     arc = False
