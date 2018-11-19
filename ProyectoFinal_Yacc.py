@@ -29,8 +29,6 @@ instr_actual =""
 num_args = 0
 # Asignacion es expresion o input
 asig_input = False
-# Operador uanrio menos
-negativo = False
 # Tabla Semantica para Resolver el tipo de una operacion
 tabla_semantica = tb.TablaSemantica()
 # Pila de operadores.
@@ -358,28 +356,31 @@ def p_expresion(p):
                 | 
        factor : PARIZQ push_paren expresion PARDER pop_paren
               | var
-              | RESTA neg_push var neg_pop
+              | RESTA var neg
        var : ID actualiza_id push_paren var_func_call pop_paren
        var_func_call : lista'''
 
-def p_neg_push(p):
-    '''neg_push : '''
-    global negativo
-    negativo = True
+# Manejar operador unarion menos
+def p_neg(p):
+    '''neg : '''
+    global quads
+    oper = pila_operandos.pop()
+    if oper['tipo'] == 'int':
+        dir_virtual = mapa.creaVarLocal('tmpi')
+    else:
+        dir_virtual = mapa.creaVarLocal('tmpf')
+    quads.genera('*', dir_constant(-1, 'ctei'), oper['dir_virtual'], dir_virtual)
+    pila_operandos.append({'nombre': 'temp',
+                            'tipo' : oper['tipo'],
+                            'dir_virtual' : dir_virtual})
+    
 
-def p_neg_pop(p):
-    '''neg_pop : '''
-    global negativo
-    negativo = False
 
 # Agregar constante entera a la pila de operadores.
 def p_var_int(p):
     '''var : CTE_I'''
     global pila_operandos
     global mapa
-    global negativo
-    if negativo:
-        p[1] = -p[1]
     pila_operandos.append({'nombre': p[1],
                            'tipo' : 'int',
                            'dir_virtual' : dir_constant(p[1],'ctei')})
@@ -389,9 +390,6 @@ def p_var_float(p):
     '''var : CTE_F'''
     global pila_operandos
     global mapa
-    global negativo
-    if negativo:
-        p[1] = -p[1]
     pila_operandos.append({'nombre': p[1],
                            'tipo' : 'float',
                            'dir_virtual' : dir_constant(p[1],'ctef')})
