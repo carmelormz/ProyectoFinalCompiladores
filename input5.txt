@@ -5,11 +5,13 @@ canvas {
     background 0, 0, 0;
 }
 main {
-    int i;
+    int i, tam;
     i = 3;
-    repeat(i <= 30){
+    tam = 30;
+    repeat(i <= tam){
+        size(tam - i);
         color(255 - i*7, 0 + i*7, 255/i);
-        ngon(i, -10).rotate(i).stretch(2);
+        ngon(i, 20).rotate(i).stretch(2);
         i = i + 1;
     }
     color(255, 255, 255);

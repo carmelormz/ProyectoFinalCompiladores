@@ -555,17 +555,26 @@ def p_estatuto(p):
                 | escritura
                 | ciclo
                 | instruccion
-                | func_call PUNTCOM
+                | void_func_call PUNTCOM
        bloque : BRAIZQ estatutos BRADER '''
 
 # Reglas sintacticas para llamadas de funcion.
 def p_func_call(p):
-    '''func_call : ID actualiza_id actualiza_func PARIZQ args gen_era PARDER gen_gosub
+    '''void_func_call : ID actualiza_id actualiza_func is_void PARIZQ args gen_era PARDER gen_gosub
        var_func_call : PARIZQ actualiza_func args gen_era PARDER gen_gosub
        args : expresion asig_par arg
             |
        arg : COMA args
            | '''
+
+# Asegurar que solo funciones void son estatutos.
+def p_is_void(p):
+    '''is_void :'''
+    global func_call
+    global dir_func
+    if dir_func[func_call[-1]['func']]['tipo'] != 'void':
+        print("Function %s has a return value and must be inside an expression." %(func_call[-1]['func']))
+        sys.exit()
 
 # Regla que actualiza la llamad a funcion actual y verifcia que exista en el directorio de funciones.
 def p_actualiza_func(p):

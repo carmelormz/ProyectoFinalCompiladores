@@ -137,13 +137,18 @@ def main():
             instruction_pointer += 1
         elif quads[instruction_pointer][0] == 16:
             # left
-            angulo = mem.find(quads[instruction_pointer][3])
-            myTurtle.left(angulo)
+            dist = mem.find(quads[instruction_pointer][3])
+            myTurtle.left(90)
+            myTurtle.forward(dist)
+            myTurtle.left(-90)
             instruction_pointer += 1
         elif quads[instruction_pointer][0] == 17:
             # right
             angulo = mem.find(quads[instruction_pointer][3])
-            myTurtle.right(angulo)
+            dist = mem.find(quads[instruction_pointer][3])
+            myTurtle.right(90)
+            myTurtle.forward(dist)
+            myTurtle.right(-90)
             instruction_pointer += 1
         elif quads[instruction_pointer][0] == 18:
             # turn
