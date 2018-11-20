@@ -101,7 +101,7 @@ main() {
 
 ## **USO DE CICLOS**
 
-En el lenguaje FYG existe el estatuto de cilo *repeat*, el cual realiza un bloque de código un numero finito de veces hasta que se cumpla la condicion establecida en el parámetro de la función.
+En el lenguaje FYG existe el estatuto de ciclo *repeat*, el cual realiza un bloque de código un numero finito de veces hasta que se cumpla la condicion establecida en el parámetro de la función.
 
 La sintaxis del estatuto *repeat* es la siguiente: REPEAT ( CONDICION) {}
 
@@ -118,7 +118,7 @@ repeat(x > 0) {
 
 ## **MOVIMIENTO FIGURA PRINCIPAL**
 
-La salida gráfica de FYG se concentra en una figura principal, que es la encargada de dibujar cada figura o realizar cada instrucción gráfica que el código el dicte. Esta figura se pude mover hacia diferentes direcciones, habilitar/inhabilitar el pincel de dibujo, entre otras. Las funciones habilitadas para la figura principal son las siguientes:
+La salida gráfica de FYG se concentra en una figura principal, que es la encargada de dibujar cada figura o realizar cada instrucción gráfica que el código el dicte. Esta figura se puede mover hacia diferentes direcciones, habilitar/inhabilitar el pincel de dibujo, entre otras. Las funciones habilitadas para la figura principal son las siguientes:
 
 - **Forward**: Movimiento de la figura principal hacia enfrente, siguiendo la orientación que tenga. Se utiliza la función ***forward(dist)***. Recibe como parámetro la distancia a mover hacia adelante. 
 
@@ -139,6 +139,8 @@ backwards(10);
 ```
 - **Left**: Movimiento de la figura completa hacia la izquierda basada en la actual orientación, no afecta orientación. Se utiliza la función ***left(dist)***. Recibe como parámetro la distancia a moverse a la izquierda.
 
+**Ejemplo**:
+
 ```python
 # Movimiento de la figura principal hacia la izquierda, 10 en distancia.
 left(10);
@@ -147,12 +149,16 @@ left(10);
 
 - **Right**: Movimiento de la figura completa hacia la derecha basada en la actual orientación, no afecta orientación. Se utiliza la función ***right(dist)***. Recibe como parámetro la distancia a moverse a la derecha.
 
+**Ejemplo**:
+
 ```python
 #Movimiento de la figura principal hacia la derecha, 10 en distancia
 right(10);
 ```
 
 - **Turn**: Cambio de orientación de la figura hacia la derecha, según un ángulo dado por el usuario como parámetro. Se utiliza la función ***turn(angle)***.
+
+**Ejemplo**:
 
 ```python
 # Rotar la figura principal 90 angulos a la derecha.
@@ -161,12 +167,16 @@ turn(90);
 
 - **Up**: Levanta el pincel de dibujo, la figura principal deja de dibujar. No recibe ningún parámetro. Se utiliza la función ***up()***.
 
+**Ejemplo**:
+
 ```python
 # Cancelar que la figura dibuje.
 up();
 ```
 
 - **Down**: Baja el pincel de dibujo, la figura principal puede dibujar. No recibe ningún parámetro. Se utiliza la función ***down()***.
+
+**Ejemplo**:
 
 ```python
 # Habilitar que la figura dibuje.
@@ -229,7 +239,7 @@ Para crear alguna de estas figuras se tiene que utilizar las funciones predeterm
    
 ## **MODIFICAR UNA FIGURA GEOMETRICA Y PINCEL DE DIBUJO**
 
-Al momento de crear una figura geométrica, predeterminadamente se crean vacías. Dado esto, FYG incluye varias funciones predeterminadas para modificar las figuras geométricas al momento de estarlas creando (Una vez creadas ya no se pueden modificar). Las funciones disponibles para la modificación de las figuras son:
+Al momento de crear una figura geométrica, predeterminadamente se crean vacías. Dado esto, FYG incluye varias funciones predeterminadas para modificar las figuras geométricas al momento de estarse creando (Una vez creadas ya no se pueden modificar). Las funciones disponibles para la modificación de las figuras son:
 
 - **Size**: El ancho del pincel de dibujo se modifica. Se utiliza la función ***size(size)***. Recibe como parametro el tamaño del pincel.
 
@@ -240,7 +250,7 @@ Al momento de crear una figura geométrica, predeterminadamente se crean vacías
 size(10);
 ```
 
-- **Color**: Modifica el color de dibujo del pincel y de rellanado al utilizar ***fill()***. Se utiliza la función ***color(r,g,b)***. Recibe como parametros el color deseado en RGB.
+- **Color**: Modifica el color de dibujo del pincel y de rellenado al utilizar ***fill()***. Se utiliza la función ***color(r,g,b)***. Recibe como parametros el color deseado en RGB.
 
 **Ejemplo**:
 
@@ -279,7 +289,7 @@ circle(50). stretch(10);
 
 ## MODIFICAR/CAMBIAR FONDO DE LA SALIDA GRAFICA
 
-El lenguaje de FYG permite al usuario cambiar las características del fondo de la salida gráfica. El usuario puede cambiar la altura, anacho y color del fondo, ó poner una imagen deseada de fondo. Para realizar estas acciones, se necesita ingresa el siguiente código al programa FYG:
+El lenguaje de FYG permite al usuario cambiar las características del fondo de la salida gráfica. El usuario puede cambiar la altura, ancho y color del fondo, ó poner una imagen deseada de fondo. Para realizar estas acciones, se necesita ingresa el siguiente código al programa FYG:
 
 - **Modificar características ventana de salida gráfica**: Cambiar la altura, anchura y color del fondo de la ventana.
 
